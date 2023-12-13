@@ -4084,10 +4084,10 @@ core-js@3.6.5:
   resolved "https://registry.npmjs.org/core-js/-/core-js-3.6.5.tgz"
   integrity sha512-vZVEEwZoIsI+vPEuoF9Iqf5H7/M3eeQqWlQnYa8FSKKePuYTf5MWnxb5SDAzCa60b3JBRS5g9b+Dq7b1y/RCrA==
 
-core-js@^3.25.3, core-js@^3.33.1:
-  version "3.33.2"
-  resolved "https://registry.npmjs.org/core-js/-/core-js-3.33.2.tgz"
-  integrity sha512-XeBzWI6QL3nJQiHmdzbAOiMYqjrb7hwU7A39Qhvd/POSa/t9E1AeZyEZx3fNvp/vtM8zXwhoL0FsiS0hD0pruQ==
+core-js@^3.33.1, core-js@^3.34.0:
+  version "3.34.0"
+  resolved "https://registry.yarnpkg.com/core-js/-/core-js-3.34.0.tgz#5705e6ad5982678612e96987d05b27c6c7c274a5"
+  integrity sha512-aDdvlDder8QmY91H88GzNi9EtQi2TjvQhpCX6B1v/dAZHU1AuLgHvRh54RiOerpEhEW46Tkf+vgAViB/CWC0ag==
 
 core-util-is@~1.0.0:
   version "1.0.3"
