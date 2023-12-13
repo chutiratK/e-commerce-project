@@ -1,5 +1,5 @@
 <template>
-    <v-dialog max-width="400px" v-model="showSignUpModal">
+    <v-dialog max-width="400px" v-model="showSignUpEmailModal">
         <v-card style="background-color: grey">
             <v-card-title>Sign Up</v-card-title>
             <v-card-text>
@@ -23,25 +23,24 @@
                     <center>
                         <div v-if="passwdMismatch" class="passwdMismatch">Password and Confirm Password do not match</div><br>
                         <v-btn type="submit" color="primary">Sign Up</v-btn>
+                        <!-- <v-btn @click="signUpWithPhone" color="green">Sign Up with Phone</v-btn> -->
+                        <SignUpPhone/>
                     </center>
                 </v-form>
-                <center>
-                    <!-- <v-btn @click="signUpWithPhone" color="green">Sign Up with Phone</v-btn>
-                    <SignUpPhone/> -->
-                </center>
             </v-card-text>
         </v-card>
     </v-dialog>
 </template>
 
 <script lang="ts">
+import Vue from 'vue';
 import { EventBus } from '../../event-bus.js';
 import SignUpPhone from "../modals/phone-signup.vue";
 import { getAuth, createUserWithEmailAndPassword  } from 'firebase/auth';
 
-export default ({
+export default Vue.extend({
     data: () => ({
-        showSignUpModal: false,
+        showSignUpEmailModal: false,
         email: '',
         password: '',
         confirmPassword: '',
@@ -53,7 +52,7 @@ export default ({
     methods: {
         signUpWithPhone() {
             EventBus.$emit('show-signup-phone-modal');
-            this.showSignUpModal = false;
+            this.showSignUpEmailModal = false;
         },
         signUpWithEmail() {
             if (this.password == this.confirmPassword) {
@@ -61,7 +60,7 @@ export default ({
                 createUserWithEmailAndPassword(auth,this.email, this.password)
                 .then((userCredential) => {
                     console.log('User signed up:', userCredential.user);
-                    this.showSignUpModal = false;
+                    this.showSignUpEmailModal = false;
                     alert("Sign up with email success!!!")
                     
                 }) .catch((error) => {
@@ -80,7 +79,7 @@ export default ({
     },
     mounted() {
         EventBus.$on('show-signup-modal', () => {
-            this.showSignUpModal = true;
+            this.showSignUpEmailModal = true;
         });
     },
 })

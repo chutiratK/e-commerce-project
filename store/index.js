@@ -5,6 +5,7 @@ Vue.use(Vuex);
 
 export const state = () => ({
     user: false,
+    isCartOpen: false,
 });
 
 export const mutations = {
@@ -16,6 +17,12 @@ export const mutations = {
             state.user = false;
         }
     },
+    setUser(state, user) {
+        state.user = user;
+    },
+    toggleCart(state) {
+        state.isCartOpen = !state.isCartOpen;
+      },
 };
 
 // const actions = {

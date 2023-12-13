@@ -1,7 +1,8 @@
 import { initializeApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
-import firebase from 'firebase/app';
+import { getFunctions } from 'firebase/functions';
 import 'firebase/auth';
+import 'firebase/functions';
 
 const firebaseConfig = {
     apiKey: "AIzaSyCOtyI-Kx9uJ4YcBvt3z4AZKUGJOS-8jDE",
@@ -15,15 +16,19 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
+const auth= getAuth(app);
+// const firestore = app.firestore();
+const functions = getFunctions(app);
 
 export default ({ app }, inject) => {
-  // แนบ Firebase Authentication และ Firebase App ให้ Vue ผ่านค่า inject
   inject('auth', auth);
   inject('firebase', app);
+  inject('functions', functions);
+  // inject('firestore', firestore);
+
   app.auth = auth;
   
-  auth.onAuthStateChanged((user) => {
+  auth.onAuthStateChanged(async (user) => {
     if (user) {
       console.log("ผู้ใช้เข้าสู่ระบบ:", user);
     } else {
@@ -32,5 +37,6 @@ export default ({ app }, inject) => {
   });
 };
 
-// export const auth = firebase.auth(); // Export the auth module
+
+export { auth, functions};
 

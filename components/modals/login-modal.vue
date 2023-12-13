@@ -75,6 +75,7 @@ import SignIn from "../SignIn.vue";
 import SignUp from "../modals/signup-modal.vue";
 import PhoneModal from "../modals/phone-modal.vue"
 import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
+import { getFirestore, collection, addDoc } from 'firebase/firestore';
 
 export default Vue.extend({
     data: () => ({
@@ -109,7 +110,10 @@ export default Vue.extend({
             }
 
             try {
-                await signInWithEmailAndPassword(auth, email, password);
+                const result = await signInWithEmailAndPassword(auth, email, password);
+                const user = result.user;
+
+                await this.storeUserDataInFirestore(user);
                 this.showDialogSignin = false;
             } catch (error) {
                 console.error('Error signing in:', error);
@@ -119,6 +123,22 @@ export default Vue.extend({
         },
         togglePassword() {
             this.showPassword = !this.showPassword;
+        },
+        async storeUserDataInFirestore(user:any) {
+            const db = getFirestore();
+            const userRef = collection(db, 'users');
+            const userData = {
+                uid: user.uid,
+                displayName: user.displayName,
+                email: user.email,
+            };
+
+            try {
+                const docRef = await addDoc(userRef, userData);
+                console.log('ID: ', docRef.id);
+            } catch (error) {
+                console.error('Error adding document: ', error);
+            }
         }
     }
 });
