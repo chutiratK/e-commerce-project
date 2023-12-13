@@ -43,7 +43,7 @@ export default {
   ],
 
   router: {
-    
+    // '../router/index.ts': {}
   },
   // Modules: https://go.nuxtjs.dev/config-modules
   modules: [

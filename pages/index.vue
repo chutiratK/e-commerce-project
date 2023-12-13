@@ -1,20 +1,24 @@
-<template>
-  <v-app class="grey lighten-4">
+<template >
+  <v-app style="background-color: rgb(236, 236, 236);">
     <NavBar />
     <Nuxt />
-    <div class="flex flex-column align-start align-self-styart justify-start">
-      <h1>HOME</h1>
-      <!-- <p>logged in</p> -->
-    </div>
+      <div >
+      <Product />
+      </div>
   </v-app>
 </template>
 
 <script>
 import NavBar from "../components/NavBar.vue"
+import Product from "../components/Product.vue"
 
 export default {
-  name: 'IndexPage',
-  components: { NavBar },
-
+  name: 'home',
+  components: { NavBar, Product },
+  
 }
 </script>
+
+<style>
+
+</style>

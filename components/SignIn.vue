@@ -1,5 +1,5 @@
 <template>
-    <div>
+    <div >
       <v-form>
         <center>
             <v-btn color="red" class="login-button" @click="signInWithGoogle">Login with Google</v-btn><br><br>
@@ -13,16 +13,21 @@
 import Vue from 'vue';
 // import PhoneModal from "./modals/phone-modal.vue"
 import { getAuth, signInWithPopup, GoogleAuthProvider, FacebookAuthProvider  } from "firebase/auth";
+import { getFirestore, doc, setDoc, getDoc } from 'firebase/firestore';
 
 export default Vue.extend({
+    
     methods: {
         async signInWithGoogle() {
             const auth = getAuth();
             const provider = new GoogleAuthProvider();
     
             try {
-                await signInWithPopup(auth, provider);
-                console.log('login with google success ja!');
+                const result = await signInWithPopup(auth, provider);
+                const user = result.user;
+
+                const docRefId = await this.storeUserDataInFirestore(user);
+                console.log('login with google success ja!', docRefId);
             } catch (error) {
                 console.error('error login in with google');
             }
@@ -34,43 +39,42 @@ export default Vue.extend({
             try {
                 const result = await signInWithPopup(auth, provider);
                 const user = result.user;
-                console.log('Login with Facebook success:', user);
+
+                const docRefId = await this.storeUserDataInFirestore(user);
+                console.log('login with facebook success', docRefId);
+                
             } catch (error) {
                 console.error('Error logging in with Facebook:', error.message);
             }
         },
+        async storeUserDataInFirestore(user: any) {
+            const db = getFirestore();
+            const userRef = doc(db, 'users', user.uid);
+            try {
+                const docSnapshot = await getDoc(userRef);
+                if (!docSnapshot.exists()) {
+                    const userData = {
+                        uid: user.uid,
+                        displayName: user.displayName || null,
+                        email: user.email || null,
+                        phone: user.phone || null, 
+                        address: user.address || null, 
+                    };
+
+                    await setDoc(userRef, userData);
+                    console.log('Document added with ID: ', user.uid);
+                } else {
+                    console.log('Document already exist ');
+                }
+                return user.uid;
+            } catch (error) {
+                console.error('Error adding document: ', error);
+            }
+        }
     },
 });
 </script>
   
-<style>
-
-</style>
-  
-<!-- <script>
-export default {
-mounted(){
-    const firebaseui = require('firebaseui');
-    require("firebaseui/dist/firebaseui.css");
-
-    const ui = 
-    firebaseui.auth.AuthUI.getInstance() || 
-    new firebaseui.auth.AuthUI(this.$fire.auth);
-
-    const config = {
-        signInOptions: [
-            this.$fireModule.auth.PhoneAuthProvider.PROVIDER_ID,
-            this.$fireModule.auth.EmailAuthProvider.PROVIDER_ID,
-            this.$fireModule.auth.GoogleAuthProvider.PROVIDER_ID,
-            this.$fireModule.auth.FacebookAuthProvider.PROVIDER_ID,
-        ],
-        signInSuccessUrl: '/', 
-    };
-    ui.start("#auth-container", config);
-},
-};
-</script> -->
-
 <style>
 
 </style>

@@ -45,14 +45,15 @@
 import Vue from 'vue';
 import { getAuth, signInWithPhoneNumber, RecaptchaVerifier, signInWithCredential, PhoneAuthProvider  } from "firebase/auth";
 import { EventBus } from '../../event-bus.js';
+import { getFirestore, doc, setDoc, getDoc } from 'firebase/firestore';
 
 export default Vue.extend({
     data: () => ({
         phoneNumber: '',
         showPhoneModal: false,
         confirmationResult: null,
-        otp: null,
-        recaptchaVerifier: null,
+        otp: '',
+        recaptchaVerifier: '',
         warningPhone: false,
         warningOTP: false,
         wrongOTP: false,
@@ -67,19 +68,21 @@ export default Vue.extend({
                 try {
                     const isPhoneNumberRegistered = await this.checkPhoneNumberRegistered(this.phoneNumber);
                     if (isPhoneNumberRegistered) {
-                        const appVerifier = new RecaptchaVerifier('recaptcha-container', {
-                            size: 'invisible',
-                            callback: (response) => {
-                                console.log('Recaptcha verified:', response);
-                            },
-                        }, auth);
+                        if (!this.recaptchaVerifier) {
+                            this.recaptchaVerifier = new RecaptchaVerifier('recaptcha-container', {
+                                size: 'invisible',
+                                callback: (response: any) => {
+                                    console.log('Recaptcha verified:', response);
+                                },
+                            }, auth);
+                        }
 
-                        const confirmationResult = await signInWithPhoneNumber(auth,this.phoneNumber, appVerifier);
+                        const confirmationResult = await signInWithPhoneNumber(auth,this.phoneNumber, this.recaptchaVerifier);
                         this.confirmationResult = confirmationResult;
                         console.log("OTP sent successfully", confirmationResult);
                     } else {
-                        this.invalidPhone = true;
-                        return;
+                        this.invalidPhone = true
+                        return; 
                     }
                 } catch (error) {
                     this.invalidPhone = true
@@ -92,7 +95,10 @@ export default Vue.extend({
             if (!this.otp) {
                 this.warningOTP = true;
             } else if (this.otp !== this.confirmationResult.verificationId){
-                this.wrongOTP = true;
+                setTimeout(() => {
+                    this.wrongOTP = true;
+                }, 5000);
+                
             }
             try {
                 if (this.confirmationResult) {
@@ -101,26 +107,29 @@ export default Vue.extend({
                         this.otp
                     );
 
-                    await signInWithCredential(getAuth(), credential);
-
+                    const result = await signInWithCredential(getAuth(), credential);
+                    const user = result.user;
+                    await this.storeUserDataInFirestore(user);
                     console.log("OTP verified successfully");
                 }
             } catch (error) {
                 console.error("Error verifying OTP:", error);
             }
         },
-        async checkPhoneNumberRegistered(phoneNumber) {
+        async checkPhoneNumberRegistered(phoneNumber: any) {
             const auth = getAuth();
             try {
                 const provider = new PhoneAuthProvider(auth);
-                const appVerifier = new RecaptchaVerifier('recaptcha-container', {
-                    size: 'invisible',
-                    callback: (response) => {
+                if (!this.recaptchaVerifier) {
+                    this.recaptchaVerifier = new RecaptchaVerifier('recaptcha-container', {
+                        size: 'invisible',
+                        callback: (response: string | null) => {
                         console.log('Recaptcha verified:', response);
-                    },
-                }, auth);
+                        },
+                    }, auth);
+                }
                 
-                await provider.verifyPhoneNumber(phoneNumber, appVerifier);
+                await provider.verifyPhoneNumber(phoneNumber, this.recaptchaVerifier);
                 return true; 
             } catch (error) {
                 if (error.code === 'auth/invalid-phone-number') {
@@ -128,7 +137,31 @@ export default Vue.extend({
                 }
                 throw error;
             }
-            },
+        },
+        async storeUserDataInFirestore(user: any) {
+            const db = getFirestore();
+            const userRef = doc(db, 'users', user.uid);
+            try {
+                const docSnapshot = await getDoc(userRef);
+                if (!docSnapshot.exists()) {
+                    const userData = {
+                        uid: user.uid,
+                        displayName: user.displayName || null,
+                        email: user.email || null,
+                        phone: this.phoneNumber || null, 
+                        address: user.address || null, 
+                    };
+
+                    await setDoc(userRef, userData);
+                    console.log('Document added with ID: ', user.uid);
+                } else {
+                    console.log('Document already exist ');
+                }
+                return user.uid;
+            } catch (error) {
+                console.error('Error adding document: ', error);
+            }
+        }
     },
     mounted() {
         EventBus.$on('show-phone-modal', () => {
