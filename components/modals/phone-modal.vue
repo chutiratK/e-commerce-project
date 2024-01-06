@@ -150,6 +150,7 @@ export default Vue.extend({
                         email: user.email || null,
                         phone: this.phoneNumber || null, 
                         address: user.address || null, 
+                        role: 'user',
                     };
 
                     await setDoc(userRef, userData);

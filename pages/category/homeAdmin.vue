@@ -16,6 +16,7 @@
                             <v-spacer></v-spacer>
                             <!-- <router-link :to="{ name: '/category/editCategory' }">EDIT</router-link> -->
                             <v-btn class="editBtn" @click="editProduct(product.productID)">EDIT</v-btn>
+                            <v-btn class="detailBtn" @click="productDetail(product.productID)">DETAIL</v-btn>
                             <v-btn class="red" @click="deleteProduct(product.productID)">DELETE</v-btn>
                         </div>
                     </div>
@@ -68,7 +69,7 @@ export default {
         },
         async fetchUserData() {
             const db = getFirestore();
-            const catalogCollectionRef = collection(db, 'catalog');
+            const catalogCollectionRef = collection(db, 'catagory');
             
             try {
                 const catalogQuerySnapshot = await getDocs(catalogCollectionRef);
@@ -90,9 +91,10 @@ export default {
             this.$router.push('/category/addCategory');
         },
         editProduct(productID: string) {
-            // this.$router.push(`/category/editCategory/${productID}`);
             this.$router.push('/category/editCategory/' + productID);
-            // console.log("haiii", productID)
+        },
+        productDetail(productID: string) {
+            this.$router.push('/category/productDetail/' + productID);
         },
         
         deleteProduct(productID: string) {
@@ -103,7 +105,7 @@ export default {
         async delsuccess() {
             try {
                 const db = getFirestore();
-                const catalogDocRef = doc(db, 'catalog', this.deletingProductID);
+                const catalogDocRef = doc(db, 'catagory', this.deletingProductID);
 
                 await deleteDoc(catalogDocRef);
                 await this.fetchUserData();

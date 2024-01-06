@@ -17,7 +17,10 @@
                 <router-link class="link" to="/">Home</router-link>
                 <router-link class="link" to="/about">About</router-link>
                 <router-link class="link" to="/">Member</router-link>
-
+                <div class="search-bar">
+                    <input type="text" v-model="searchQuery" placeholder="Search">
+                    <button @click="search">Search</button>
+                </div>
                 <template v-if="currentUser">
                     <v-menu offset-y >
                         <template v-slot:activator="{ on, attrs }">
@@ -41,9 +44,9 @@
                                 <v-list-item-title style="color: #525252;">Profile</v-list-item-title>
                                 <span>></span>
                             </v-list-item>
-                            <v-list-item class="sub-menu-link">
+                            <v-list-item @click="orderPage" class="sub-menu-link">
                                 <svg xmlns="http://www.w3.org/2000/svg" height="1em" viewBox="0 0 576 512"><!--! Font Awesome Free 6.4.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. --><path d="M0 24C0 10.7 10.7 0 24 0H69.5c22 0 41.5 12.8 50.6 32h411c26.3 0 45.5 25 38.6 50.4l-41 152.3c-8.5 31.4-37 53.3-69.5 53.3H170.7l5.4 28.5c2.2 11.3 12.1 19.5 23.6 19.5H488c13.3 0 24 10.7 24 24s-10.7 24-24 24H199.7c-34.6 0-64.3-24.6-70.7-58.5L77.4 54.5c-.7-3.8-4-6.5-7.9-6.5H24C10.7 48 0 37.3 0 24zM128 464a48 48 0 1 1 96 0 48 48 0 1 1 -96 0zm336-48a48 48 0 1 1 0 96 48 48 0 1 1 0-96z"/></svg>
-                                <v-list-item-title style="color: #525252;">Cart</v-list-item-title>
+                                <v-list-item-title style="color: #525252;">Order</v-list-item-title>
                                 <span>></span>
                             </v-list-item>
                             <v-list-item @click="signOut" class="sub-menu-link">
@@ -53,9 +56,13 @@
                             </v-list-item>
                         </v-list>
                     </v-menu>
-                    <button class="link" @click="toggleCart">
-                        <svg xmlns="http://www.w3.org/2000/svg" height="1em" viewBox="0 0 576 512"><!--! Font Awesome Free 6.4.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. --><path d="M0 24C0 10.7 10.7 0 24 0H69.5c22 0 41.5 12.8 50.6 32h411c26.3 0 45.5 25 38.6 50.4l-41 152.3c-8.5 31.4-37 53.3-69.5 53.3H170.7l5.4 28.5c2.2 11.3 12.1 19.5 23.6 19.5H488c13.3 0 24 10.7 24 24s-10.7 24-24 24H199.7c-34.6 0-64.3-24.6-70.7-58.5L77.4 54.5c-.7-3.8-4-6.5-7.9-6.5H24C10.7 48 0 37.3 0 24zM128 464a48 48 0 1 1 96 0 48 48 0 1 1 -96 0zm336-48a48 48 0 1 1 0 96 48 48 0 1 1 0-96z"/></svg>
-                    </button>
+                    <div class="icon-cart">
+                        <button class="link" @click="toggleCart">
+                            <svg xmlns="http://www.w3.org/2000/svg" height="1em" viewBox="0 0 576 512"><!--! Font Awesome Free 6.4.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. --><path d="M0 24C0 10.7 10.7 0 24 0H69.5c22 0 41.5 12.8 50.6 32h411c26.3 0 45.5 25 38.6 50.4l-41 152.3c-8.5 31.4-37 53.3-69.5 53.3H170.7l5.4 28.5c2.2 11.3 12.1 19.5 23.6 19.5H488c13.3 0 24 10.7 24 24s-10.7 24-24 24H199.7c-34.6 0-64.3-24.6-70.7-58.5L77.4 54.5c-.7-3.8-4-6.5-7.9-6.5H24C10.7 48 0 37.3 0 24zM128 464a48 48 0 1 1 96 0 48 48 0 1 1 -96 0zm336-48a48 48 0 1 1 0 96 48 48 0 1 1 0-96z"/></svg>
+                            <span>{{ cartItemCount }}</span>
+                        </button>
+                    </div>
+                    
                 </template>
                 <template v-else>
                     <Modal />
@@ -67,9 +74,9 @@
 
 <script lang="ts">
 import "bootstrap-icons/font/bootstrap-icons.css";
-// import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import "firebase/auth";
 import { getAuth, signOut } from 'firebase/auth';
+import { getFirestore, collection, onSnapshot , query, getDocs, where} from 'firebase/firestore';
 import Vue from 'vue'
 import Modal from '../components/modals/login-modal.vue'
 import ShopCart from '../components/ShoppingCart.vue'
@@ -84,26 +91,52 @@ export default Vue.extend ({
     },
     data: () => ({
         showCart: false,
+        cartItemCount: '0',
+        searchQuery: '',
+        filteredProducts: [],
     }),
     methods: {
         async signOut() {
             const auth = getAuth();
             signOut(auth).then(() => {
-                this.$router.push({ name: 'index' });
+                this.$router.go();
             }).catch((error) => {
-                console.error("error: ")
+                console.error("error: ", error.message)
+            });
+        },
+        async updateCartItemCount() {
+            const db = getFirestore();
+            const cartDocRef = collection(db, 'cart', this.currentUser.uid, 'cartUser');
+            onSnapshot(cartDocRef, (snapshot) => {
+                this.cartItemCount = snapshot.size.toString();
             });
         },
         goToProfile() {
-            this.$router.push({ name: 'profile' });
+            this.$router.push('/account/profile');
         },
         home() {
             this.$router.push({ name: 'index' });
         },
+        orderPage() {
+            this.$router.push('/account/order');
+        },  
         toggleCart() {
-            this.$store.commit('toggleCart');
+            this.$router.push({ name: 'shopCart' });
+            // this.$store.commit('toggleCart');
         },
-    }
+        async search() {
+            const db = getFirestore();
+            const categoryRef = collection(db, 'category');
+            const snapshot = await getDocs(categoryRef);
+
+            console.log('search: ', snapshot)
+            // Redirect to a search results page or handle the filteredProducts array as needed
+            // this.$router.push({ name: 'searchResults', query: { q: this.searchQuery } });
+        },
+    },
+    mounted() {
+        this.updateCartItemCount();
+    },
 });
 </script>
 
@@ -156,5 +189,38 @@ export default Vue.extend ({
     fill:#e0e0e0;
     margin-left: 10px;
     margin-top: 10px;
+    width: 20px;
+    height: 20px;
 }
+.icon-cart .link {
+    position: relative;
+}
+.icon-cart .link span {
+    display: flex;
+    background-color: #ff1818;
+    width: 15px;
+    height: 15px;
+    font-size: 10px;
+    color: #e5e2e2 ;
+    justify-content: center;
+    align-items: center;
+    border-radius: 50%;
+    position: absolute;
+    top: 50%;
+    right: -10px;
+}
+.search-bar {
+    display: flex;
+    align-items: center;
+    margin-left: auto;
+}
+
+.search-bar input {
+    padding: 8px;
+    margin-right: 10px;
+    background-color: #ffffff; 
+    border: 1px solid #ccc; 
+    border-radius: 25px; 
+}
+
 </style>

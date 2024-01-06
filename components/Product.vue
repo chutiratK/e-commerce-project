@@ -1,17 +1,19 @@
 <template>
-    <div class="product-container">
-        <div v-for="(product, index) in catalogData" :key="index">
-            <div class="product-card">
-                <center>
-                    <img :src="product.imageUrl" alt="Product Image" width="200px" height="200px"/>
-                </center>
-                <div class="product1">
-                    <h3>{{ product.categoryName }}</h3>
-                    <p>{{ product.description }}</p>
-                    <p>{{ product.price }}</p>
-                    <v-spacer></v-spacer>
-                    <router-link class="linkDetail" to="/productDetail">detail</router-link>
-                    <!-- <v-btn @click="addToCart" class="addCart">Add to Cart</v-btn> -->
+    <div>
+        <v-btn v-if="isAdmin" @click="goToAdminPage" class="gotoAdmin">Go to Admin Page</v-btn>
+        <div class="product-container">
+            <div v-for="(product, index) in catalogData" :key="index">
+                <div class="product-card">
+                    <center>
+                        <img :src="product.imageUrl" alt="Product Image" width="200px" height="200px"/>
+                    </center>
+                    <div class="product1">
+                        <h3>{{ product.categoryName }}</h3>
+                        <p>{{ product.description }}</p>
+                        <p>{{ product.price }}</p>
+                        <v-spacer></v-spacer>
+                        <v-btn class="detailBtnn" @click="productDetail(product.productID)">detail</v-btn>
+                    </div>
                 </div>
             </div>
         </div>
@@ -19,9 +21,10 @@
 </template>
 
 <script lang="ts">
-import { getFirestore, collection, getDocs, doc } from 'firebase/firestore';
+import { getFirestore, collection, getDoc, doc, getDocs } from 'firebase/firestore';
 
 interface CatalogItem {
+    productID: string;
     categoryName: string;
     description: string;
     price: number;
@@ -31,15 +34,20 @@ interface CatalogItem {
 export default {
     data:() => ({
         catalogData: [] as CatalogItem[],
-        
+        isAdmin: false,
     }),
+    computed: {
+        currentUser() {
+            return this.$store.state.user;
+        },
+    },
     methods: {
-        addToCart() {
-            
+        productDetail (productID: string) {
+            this.$router.push('/category/productDetail/' + productID);
         },
         async fetchUserData() {
             const db = getFirestore();
-            const catalogCollectionRef = collection(db, 'catalog');
+            const catalogCollectionRef = collection(db, 'catagory');
             
             try {
                 const catalogQuerySnapshot = await getDocs(catalogCollectionRef);
@@ -51,11 +59,31 @@ export default {
                 });
 
                 this.catalogData = catalogData;
+                
+            } catch (error) {
+                console.error('Error fetching user data:', error.message);
+            }
+
+            try {
+                const usersCollectionRef = collection(db, 'users');
+                const userDocRef = doc(usersCollectionRef, this.currentUser.uid);
+                const userDocSnapshot = await getDoc(userDocRef);
+
+                console.log("user: ",)
+                if (userDocSnapshot.exists()) {
+                    const userData = userDocSnapshot.data();
+
+                    if (userData.role === 'admin') {
+                        this.isAdmin = true;
+                    }
+                }
 
             } catch (error) {
                 console.error('Error fetching user data:', error.message);
             }
-            
+        },
+        goToAdminPage() {
+            this.$router.push('/category/homeAdmin');
         },
     },
     mounted() {
@@ -77,9 +105,11 @@ export default {
     width: 300px;
     height:400px;
     margin-top: 50px;
+    box-shadow: 0 30px 30px #a4a3a3;
 }
 .product-card img {
     margin: 10px;
+    border-radius: 15px;
 }
 .product1 {
     margin-left: 30px;
@@ -91,6 +121,13 @@ export default {
 .linkDetail {
     margin-left: 200px;
     text-decoration: none;
+}
+.detailBtnn {
+    width: 85%;
+}
+.gotoAdmin {
+    display: flex;
+    margin: auto;
 }
 </style>
   

@@ -56,7 +56,7 @@
 <script lang="ts">
 import NavBar from "../../../components/NavBar.vue"
 import SignIn from "../../../components/SignIn.vue"
-import { getFirestore, setDoc, doc, collection, query, getDoc, getDocs } from 'firebase/firestore';
+import { getFirestore, setDoc, doc, collection, updateDoc, getDoc, getDocs } from 'firebase/firestore';
 
 export default {
     name: "editCategory",
@@ -66,16 +66,26 @@ export default {
         description: '',
         imageUrl: '',
         price: '',
+        productID: '',
         editSuccess: false,
     }),
     mounted() {
-        const productID = this.$route.params.productID;
-        console.log('ProductID:', productID);
+        try {
+            const productID = this.$route.params.productID;
+            console.log('ProductID:', productID);
+            if (productID) {
+                this.fetchExistingData(productID);
+                this.productID = productID
+            }
+        } catch (error) {
+            console.error('Error sending product id:', error.message);
+        }
+        
     },
     methods: {
         async fetchExistingData(productID: string) {
             const db = getFirestore();
-            const productDocRef = doc(db, 'catalog', productID);
+            const productDocRef = doc(db, 'catagory', productID);
 
             try {
                 const productDocSnapshot = await getDoc(productDocRef);
@@ -95,28 +105,21 @@ export default {
         },
         async editCategory () {
             const db = getFirestore();
-            
-            const q = query(collection(db, 'catalog'));
-            const querySnapshot = await getDocs(q);
+            const docRef = doc(db, 'catagory', this.productID);
+            const categoryData = {
+                categoryName: this.categoryName,
+                description: this.description,
+                imageUrl: this.imageUrl,
+                price: this.price,
+                productID: this.productID,
+            };
 
-            if (!querySnapshot.empty) {
-                const docRef = doc(db, 'catalog', querySnapshot.docs[0].id);
-                const categoryData = {
-                    categoryName: this.categoryName,
-                    description: this.description,
-                    imageUrl: this.imageUrl,
-                    price: this.price
-                };
-
-                try {
-                    await setDoc(docRef, categoryData);
-                    console.log('Category edited successfully!');
-                    this.addSuccess = true;
-                } catch (error) {
-                    console.error('Error editing category: ', error);
-                }
-            } else {
-            console.error('Category not found');
+            try {
+                await updateDoc(docRef, categoryData); 
+                console.log('Category edited successfully!');
+                this.editSuccess = true;
+            } catch (error) {
+                console.error('Error editing category: ', error);
             }
             
         },

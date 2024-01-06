@@ -3,13 +3,29 @@ import Vuex from 'vuex';
 
 Vue.use(Vuex);
 
+interface User {
+    uid: string;
+    email: string;
+    emailVerified: boolean;
+}
+
+interface PaymentInfo {
+    products: any[]; 
+    shippingAddress: any; 
+    totalAmount: number;
+}
 export const state = () => ({
     user: false,
     isCartOpen: false,
+    paymentInfo: {
+        products: [],
+        shippingAddress: {},
+        totalAmount: 0,
+    } as PaymentInfo,
 });
-
+  
 export const mutations = {
-    ON_AUTH_STATE_CHANGED_MUTATION: (state, { authUser, claims }) => {
+    ON_AUTH_STATE_CHANGED_MUTATION: (state: { user: any; }, { authUser, claims }: any) => {
         if (authUser) {
             const { uid, email, emailVerified } = authUser;
             state.user = { uid, email, emailVerified };
@@ -17,12 +33,16 @@ export const mutations = {
             state.user = false;
         }
     },
-    setUser(state, user) {
+    setUser(state: { user: any; }, user: any) {
         state.user = user;
     },
-    toggleCart(state) {
+    toggleCart(state: { isCartOpen: boolean; }) {
         state.isCartOpen = !state.isCartOpen;
-      },
+    },
+    setPaymentInfo(state: { paymentInfo: PaymentInfo }, payload: PaymentInfo) {
+        state.paymentInfo = payload;
+    },
+    
 };
 
 // const actions = {
