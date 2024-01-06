@@ -82,13 +82,13 @@ export default {
                     categoryName: this.categoryName,
                     description: this.description,
                     imageUrl: this.imageUrl,
-                    price: this.price
+                    price: this.price,
                 };
                 try {
-                    const docRef = await addDoc(collection(db, 'catalog'), categoryData);
+                    const docRef = await addDoc(collection(db, 'catagory'), categoryData);
                     console.log('Category added successfully with ID: ', docRef.id);
                     categoryData.productID = docRef.id;
-                    await setDoc(doc(db, 'catalog', docRef.id), categoryData);
+                    await setDoc(doc(db, 'catagory', docRef.id), categoryData);
                     this.addSuccess = true;
                     
                 } catch (error) {

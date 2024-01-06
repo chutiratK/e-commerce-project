@@ -15,7 +15,13 @@ import Product from "../components/Product.vue"
 export default {
   name: 'home',
   components: { NavBar, Product },
-  
+  head() {
+    return {
+      script: [
+        { src: "https://js.stripe.com/v3/" }
+      ]
+    };
+  },
 }
 </script>
 

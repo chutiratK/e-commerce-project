@@ -1,9 +1,10 @@
 import colors from 'vuetify/es5/util/colors'
+import stripe from 'stripe';
 
 export default {
   // Disable server-side rendering: https://go.nuxtjs.dev/ssr-mode
   ssr: false,
-
+  
   // Global page headers: https://go.nuxtjs.dev/config-head
   head: {
     titleTemplate: '%s - nuxt-firebase',
@@ -19,6 +20,9 @@ export default {
     ],
     link: [
       { rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' }
+    ],
+    script: [
+      { src: "https://js.stripe.com/v3/" }
     ]
   },
 

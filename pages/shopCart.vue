@@ -1,43 +1,45 @@
 <template>
-    <div>
-        <div class="sidebarCart">
-            <div v-if="loading" class="loading-spinner">
-                <h3>Loading...</h3>
-            </div>
-            <div v-else>
-                <h1>Shopping Cart</h1>
+    <v-app style="background-color:rgb(236, 236, 236);">
+        <NavBar />
+        <Nuxt />
+        <div class="shopCart-container">
+            <div class="card mb-3 content">
+                <h2 class="m-3 pt-3">Shopping Cart</h2>
                 <hr>
-                
-                <div v-if="cart.length === 0">
-                    <img class="cartpic" src="../assets/images/cart.webp" width="200px" height="200px">
-                    <h2>Let's start shopping!</h2>
-                </div>
-                <div v-else>
-                    <div class="selectedProduct">
-                        <div class="allCheck">
-                            <input type="checkbox" v-model="selectAll" @change="selectAllItems" />
-                            <label>Select All</label>
-                        </div>
-                        <div v-for="(product, index) in cart" :key="index">
-                            <div :class="{ 'item': true, 'even': index % 2 === 0, 'odd': index % 2 !== 0 }">
-                                <input type="checkbox" v-model="product.selected" class="checkbox" @change="updateCart(product)" />
-                                <img :src="product.imageUrl" alt="Product Image" width="50px" height="50px"/>
-                                <p>{{ product.categoryName }}</p>
-                                <p id="price">฿{{ product.price }}</p>
-                                <input type="number" class="updateQuatity" v-model="product.quantity" @change="updateCart(product)" min="1" />
-                                <span class="bin" @click="deleteCart(product.productID)">
-                                    <svg xmlns="http://www.w3.org/2000/svg" height="16" width="14" viewBox="0 0 448 512"><path fill="#ff3838" d="M135.2 17.7L128 32H32C14.3 32 0 46.3 0 64S14.3 96 32 96H416c17.7 0 32-14.3 32-32s-14.3-32-32-32H320l-7.2-14.3C307.4 6.8 296.3 0 284.2 0H163.8c-12.1 0-23.2 6.8-28.6 17.7zM416 128H32L53.2 467c1.6 25.3 22.6 45 47.9 45H346.9c25.3 0 46.3-19.7 47.9-45L416 128z"/></svg>
-                                </span>
+                <div class="card-body">
+                    <div v-if="cart.length === 0">
+                        <center>
+                            <img  src="../assets/images/cart.webp" width="200px" height="200px">
+                            <h3>Let's start shopping!</h3>
+                        </center>
+                    </div>
+                    <div v-else>
+                        <div class="selectedProduct">
+                            <div class="allCheck">
+                                <input type="checkbox" v-model="selectAll" @change="selectAllItems" />
+                                <label>Select All</label>
                             </div>
-                        </div>
-                        <br>
-                        <hr>
-                        <div class="total">
-                                <h3>Total:</h3>
-                                <p>฿{{ totalAmount }}</p>
-                        </div>
-                        <div class="btn">
-                            <v-btn @click="checkOut">Check Out</v-btn>
+                            <div v-for="(product, index) in cart" :key="index">
+                                <div :class="{ 'item': true, 'even': index % 2 === 0, 'odd': index % 2 !== 0 }">
+                                    <input type="checkbox" v-model="product.selected" class="checkbox" @change="updateCart(product)" />
+                                    <img :src="product.imageUrl" alt="Product Image" width="50px" height="50px"/>
+                                    <p>{{ product.categoryName }}</p>
+                                    <p id="price">฿{{ product.price }}</p>
+                                    <input type="number" class="updateQuatity" v-model="product.quantity" @change="updateCart(product)" min="1" />
+                                    <span class="bin" @click="deleteCart(product.productID)">
+                                        <svg xmlns="http://www.w3.org/2000/svg" height="16" width="14" viewBox="0 0 448 512"><path fill="#ff3838" d="M135.2 17.7L128 32H32C14.3 32 0 46.3 0 64S14.3 96 32 96H416c17.7 0 32-14.3 32-32s-14.3-32-32-32H320l-7.2-14.3C307.4 6.8 296.3 0 284.2 0H163.8c-12.1 0-23.2 6.8-28.6 17.7zM416 128H32L53.2 467c1.6 25.3 22.6 45 47.9 45H346.9c25.3 0 46.3-19.7 47.9-45L416 128z"/></svg>
+                                    </span>
+                                </div>
+                            </div>
+                            <br>
+                            <hr>
+                            <div class="total">
+                                    <h3>Total:</h3>
+                                    <p>฿{{ totalAmount }}</p>
+                            </div>
+                            <div class="btn">
+                                <v-btn @click="checkOut">Check Out</v-btn>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -61,10 +63,11 @@
                 </v-card>
             </v-dialog>
         </div>
-    </div>
+    </v-app>
 </template>
 
 <script lang="ts">
+
 import { getFirestore, doc, collection, deleteDoc, updateDoc, onSnapshot, setDoc, getDoc} from 'firebase/firestore';
 interface Cart {
     productID: string;
@@ -77,6 +80,8 @@ interface Cart {
 }
 export default {
     name: 'Cart',
+    components: {
+    },
     data: () => ({
         loading: true,
         delConfirmForm: false,
@@ -84,6 +89,24 @@ export default {
         cart: [] as Cart[],
         selectAll: false,
     }),
+    // data() {
+    //     return{
+    //         publishableKey:'pk_test_51OPNLwFJUwe1va09pikfEhMZZw3SrXulpaqGMXQbeT9kTm2MB6nbWKNWPNcTe3OJ1fJHw5a0d3H6TzA73NS3Ykjk003g6rTcC7',
+    //         successURL:'http://localhost:3000/',
+    //         cancelURL:'http://localhost:3000/',
+    //         loading: false,
+    //         lineItems: [
+    //             {
+    //             price: 'price_1OTUWgFJUwe1va09zOKo0zLi',
+    //             quantity: 1,
+    //             },
+    //         ],
+    //         delConfirmForm: false,
+    //         delSuccess: false,
+    //         cart: [] as Cart[],
+    //         selectAll: false,
+    //     }
+    // },
     computed: {
         currentUser() {
             return this.$store.state.user;
@@ -93,6 +116,9 @@ export default {
         },
     },
     methods: {
+        submit () {
+            this.$refs.checkoutRef.redirectToCheckout();
+        },
         async fetchUserData() {
             const db = getFirestore();
             const userCartRef = collection(db, 'cart', this.currentUser.uid, 'cartUser');
@@ -137,35 +163,7 @@ export default {
                     quantity: product.quantity,
                     selected: product.selected,
                 });
-                
-                // if (product.selected) {
-                //     const orderData = {
-                //         userID: this.currentUser.uid,
-                //         productID: product.productID,
-                //         categoryName: product.categoryName,
-                //         imageUrl: product.imageUrl,
-                //         price: product.price,
-                //         quantity: product.quantity,
-                //         selected: product.selected,
-                //     };
-                //     const userOrderDocRef = doc(db, 'order', this.currentUser.uid);
-                //     const userOrderDocSnapshot = await getDoc(userOrderDocRef);
-
-                //     if (userOrderDocSnapshot.exists()) {
-                //         await setDoc(userOrderDocRef, { ...userOrderDocSnapshot.data(), ...orderData });
-                //     } else {
-                //         await setDoc(userOrderDocRef, {});
-                //     }
-
-                //     const orderUserDocRef = doc(userOrderDocRef);
-                //     await setDoc(orderUserDocRef, orderData);
-                //     onSnapshot(userOrderDocRef, (doc) => {
-                //         console.log('Order updated:', doc.data());
-                //     });
-                // } else {
-                //     const orderUserDocRef = doc(db, 'order', this.currentUser.uid);
-                //     await deleteDoc(orderUserDocRef);
-                // }
+               
             } catch (error) {
                 console.error('Error updating selection:', error.message);
             }
@@ -193,47 +191,31 @@ export default {
 </script>
 
 <style>
-.sidebarCart {
-    /* width: 400px;
-    height: 100%; */
-    background-color: #fff;
-    color: #666666;
-    position: fixed;
-    inset: 0 0 0 auto;
-    display: grid;
-  
-}
-.sidebarCart h1 {
+
+.shopCart h1 {
     margin-top: 70px;
     margin-left: 20px;
     font-weight: 300px;
 }
-.cartpic {
-    margin-left: 100px;
-    margin-top: 100px;
+
+.shopCart-container {
+    margin: auto;
 }
-.sidebarCart h2 {
+.content{
+    border-radius: 10px;
+    background-color: rgb(253, 253, 253);
+    color:#5b5353 ;
+    width: 700px;
+    height:100%;
+}
+.content h2, hr{
+    margin: 20px 40px;
+}
+.shopCart h2 {
     text-align: center;
 }
-.loading-spinner h3 {
-    margin-top: 20px;
-    margin-left: -10px;
-}
-.loading-spinner {
-    margin-top: 270px;
-    margin-left: 160px;
-}
-
-.loading-spinner:before {
-  content: '';
-  box-sizing: border-box;
-  display: inline-block;
-  width: 50px;
-  height: 50px;
-  border: 7px solid #ccc;
-  border-radius: 50%;
-  border-top: 7px solid #666;
-  animation: spin 1s linear infinite;
+.card-body {
+    margin: 20px 40px;
 }
 .selectedProduct {
     display: flex;
@@ -318,10 +300,6 @@ export default {
     padding: 15px;
     height: 350px;
 }
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
+
 </style>
   

@@ -27,6 +27,7 @@ export default Vue.extend({
                 const user = result.user;
 
                 const docRefId = await this.storeUserDataInFirestore(user);
+                this.$router.go();
                 console.log('login with google success ja!', docRefId);
             } catch (error) {
                 console.error('error login in with google');
@@ -41,6 +42,7 @@ export default Vue.extend({
                 const user = result.user;
 
                 const docRefId = await this.storeUserDataInFirestore(user);
+                this.$router.go();
                 console.log('login with facebook success', docRefId);
                 
             } catch (error) {
@@ -59,6 +61,8 @@ export default Vue.extend({
                         email: user.email || null,
                         phone: user.phone || null, 
                         address: user.address || null, 
+                        role: 'user', 
+                        provider: user.provider,
                     };
 
                     await setDoc(userRef, userData);

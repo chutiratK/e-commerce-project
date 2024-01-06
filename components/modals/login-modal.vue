@@ -87,7 +87,8 @@ export default Vue.extend({
         showPassword: false, 
         auth: {
             email: '',
-            password: ''
+            password: '',
+            role: '',
         },
         
     }),
@@ -131,6 +132,7 @@ export default Vue.extend({
                 uid: user.uid,
                 displayName: user.displayName,
                 email: user.email,
+                role: 'user',
             };
 
             try {
