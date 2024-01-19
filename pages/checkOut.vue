@@ -31,7 +31,8 @@
                                 <h3>Total:</h3>
                                 <p>฿ {{ selectedTotalAmount  }}</p>
                             </div>
-                            <v-btn class="payment" @click="pay_method()">ชำระเงิน</v-btn>
+                            <v-btn class="payment" @click="payMethod()">ชำระเงิน</v-btn>
+                
                         </div>
                     </div>
                 </div>
@@ -64,7 +65,6 @@
 
 <script lang="ts">
 import Vue from 'vue';
-import Stripe from 'stripe';
 import { getFirestore, collection, updateDoc, onSnapshot, doc, setDoc, addDoc} from 'firebase/firestore';
 
 interface Cart {
@@ -90,7 +90,6 @@ export default Vue.extend({
         cart: [] as Cart[],
         addresses: [] as Address[],
         changeAddrModal: false,
-        stripe: null,
     }),
     computed: {
         currentUser() {
@@ -161,10 +160,11 @@ export default Vue.extend({
                 console.error('Error updating selected address:', error);
             }
         },
-        async pay_method() {
+        async payMethod() {
             const db = getFirestore();
             const selectedAddress = this.addresses.find((address) => address.selectedAddr);
             const userOrderRef = collection(db, 'order', this.currentUser.uid, 'orderUser');
+
             const selectedCartItems = this.cart.filter((product) => product.selected);
             const orderUser = {
                 userID: this.currentUser.uid,
@@ -187,6 +187,7 @@ export default Vue.extend({
             
             this.$router.push('/order/payMethod/' + orderUser.orderID);
             console.log('Order details:', orderUser);
+     
         },
         changeAddr() {
             this.changeAddrModal = true;
@@ -197,7 +198,7 @@ export default Vue.extend({
     },
     async mounted() {
         await this.fetchUserData();
-       
+    
     },
 });
 </script>

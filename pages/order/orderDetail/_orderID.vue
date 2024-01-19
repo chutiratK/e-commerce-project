@@ -28,10 +28,16 @@
                                 </div>
                             </div>
                             <div class="total">
-                                    <h3>Total:</h3>
-                                    <p>฿ {{ this.totalAmount }}</p>
-                                </div>
-                            <v-btn class="payment" @click="pay_method()">ชำระเงิน</v-btn>
+                                <h3>Total:</h3>
+                                <p>฿ {{ this.totalAmount }}</p>
+                            </div>
+                            <div class="payPageBtn">
+                                <v-btn class="red" @click="cancelOrderconfirm()">ยกเลิกออเดอร์</v-btn>
+                                <v-btn @click="payMethod">ชำระเงิน</v-btn> 
+                                <form action="/create-checkout-session" method="POST">
+                                    <button type="submit" id="checkout-button">Checkout</button>
+                                </form>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -57,14 +63,35 @@
                 </div>
                 <!-- <v-btn class="blue" @click="changeAddrr">ok</v-btn> -->
                 </center>
-        </v-card>
-    </v-dialog>
+            </v-card>
+        </v-dialog>
+        <v-dialog v-model="cancelOrderConfirmForm" max-width="300px" >
+            <v-card class="popUpdel" style="background-color: white; color: #5b5353">
+                <center>
+                    <h3>Are you sure to cancel?</h3><br>
+                    <v-btn class="green" @click="cancelOrder">YES</v-btn>
+                    <v-btn class="red" @click="cancel">NO</v-btn>
+                </center>
+            </v-card>
+        </v-dialog>
+        <v-dialog v-model="cancelOrderSuccess" max-width="400px" >
+            <v-card class="popUp" style="background-color: white; color: #5b5353">
+                <center>
+                    <img src="../../../assets/images/check.webp" width="200px" height="200px">
+                    <h3>cancel successfully!</h3><br>
+                    <v-btn class="green" @click="cancelfin">ok</v-btn>
+                </center>
+            </v-card>
+        </v-dialog>
     </v-app>
 </template>
 
 <script lang="ts">
 import Vue from 'vue';
-import { getFirestore, collection, updateDoc, onSnapshot, doc, getDoc, addDoc} from 'firebase/firestore';
+import { loadStripe } from '@stripe/stripe-js';
+import { StripeElementCard } from '@vue-stripe/vue-stripe';
+import { getFirestore, collection, updateDoc, onSnapshot, doc, getDoc, deleteDoc} from 'firebase/firestore';
+
 interface Address {
     addressID: string;
     name: string;
@@ -81,7 +108,7 @@ interface Order {
 }
 export default Vue.extend({
     name: 'checkout',
-    components: { },
+    components: { StripeElementCard },
     data: () => ({
         changeAddrModal: false,
         totalAmount: '',
@@ -90,6 +117,10 @@ export default Vue.extend({
         orderAddress: [],
         addresses: [] as Address[],
         orders: [] as Order[],
+        cancelOrderConfirmForm: false,
+        cancelOrderSuccess: false,
+        cancelOrderID: '',
+        stripePromise: loadStripe('pk_test_51OPNLwFJUwe1va09pikfEhMZZw3SrXulpaqGMXQbeT9kTm2MB6nbWKNWPNcTe3OJ1fJHw5a0d3H6TzA73NS3Ykjk003g6rTcC7'),
     }),
     computed: {
         currentUser() {
@@ -107,11 +138,11 @@ export default Vue.extend({
             this.orderId = orderID;
             
         } catch (error) {
-            console.error('Error sending product id:', error.message);
+            console.error('Error sending product id:', error);
         }
     },
     methods: {
-        async fetchUserData(orderID) {
+        async fetchUserData(orderID: any) {
             const db = getFirestore();
             const userOrderRef = doc(db, 'order', this.currentUser.uid, 'orderUser',orderID);
             const userAddrRef = collection(db, 'address', this.currentUser.uid, 'addressUser');
@@ -125,7 +156,7 @@ export default Vue.extend({
                     this.addresses = updatedAddr;
                 });
             } catch (error) {
-                console.error('Error fetching user data:', error.message);
+                console.error('Error fetching user data:', error);
             }
             try {
                 const orderDoc = await getDoc(userOrderRef);
@@ -146,7 +177,7 @@ export default Vue.extend({
                 });
 
             } catch (error) {
-                console.error('Error fetching order data:', error.message);
+                console.error('Error fetching order data:', error);
             }
         },
 
@@ -176,21 +207,45 @@ export default Vue.extend({
                     });
                 }
             } catch (error) {
-                console.error('Error updating selected address:', error.message);
+                console.error('Error updating selected address:', error);
             }
         },
 
-        async pay_method() {
+        async payMethod() {
             const orderID = this.$route.params.orderID;
-            this.$router.push('/order/payMethod/' + orderID);
-
-            
+            // this.$router.push('/order/payMethod/' + orderID);
+            this.$router.push('http://localhost:4242/checkout.html');
         },
+        
+        async cancelOrderconfirm() {
+            const orderID = this.$route.params.orderID;
+            this.cancelOrderID = orderID;
+            this.cancelOrderConfirmForm = true;
+        },
+        async cancelOrder() {
+            try {
+                const db = getFirestore();
+                const catalogDocRef = doc(db, 'order', this.currentUser.uid, 'orderUser', this.cancelOrderID);
+
+                await deleteDoc(catalogDocRef);
+                this.cancelOrderConfirmForm = false;
+                this.cancelOrderSuccess = true;
+            } catch (error) {
+                console.error('Error deleting product:', error);
+            }
+        },
+        
         changeAddr() {
             this.changeAddrModal = true;
         },
         changeAddrr() {
             this.changeAddrModal = false;
+        },
+        cancel() {
+            this.cancelOrderConfirmForm = false;
+        },
+        cancelfin() {
+            this.$router.push('/account/order');
         },
     },
     
@@ -248,8 +303,9 @@ export default Vue.extend({
         font-size: 125%;
         margin-right: 20px;
     }
-    .payment {
-        margin-left: 530px;
+    .payPageBtn {
+        padding: 12px;
+        margin-left: 300px;
     }
     .address-info {
         flex: 1;

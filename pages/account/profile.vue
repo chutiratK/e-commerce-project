@@ -89,6 +89,24 @@
                                 {{ this.userData.role }}
                             </span>
                         </div>
+
+                        <div class="col-md-3">
+                            <span class="title-1">เข้าสู่ระบบด้วย </span>
+                        </div>
+                        <div v-if="userData" class="col-md-9 text-seconday" >
+                            <span v-if="this.userData.provider == 'google'" > 
+                                <img src="../../assets/images/googleIcon.webp" width="20px" height="20px">
+                            </span>
+                            <span v-if="this.userData.provider == 'facebook'" > 
+                                <img src="../../assets/images/facebook.webp" width="20px" height="20px">
+                            </span>
+                            <span v-if="this.userData.provider == 'phone'" > 
+                                <img src="../../assets/images/phone.webp" width="20px" height="20px">
+                            </span>
+                            <span v-if="this.userData.provider == 'email'" > 
+                                <img src="../../assets/images/emailIcon.png" width="20px" height="20px">
+                            </span>
+                        </div>
                     </div>
                 </div>
                 </div>
@@ -163,6 +181,7 @@ export default Vue.extend({
                 phone: '',   
                 address: '',
                 role: '',
+                provider: '',
             },
             editNameModal:false,
             username:'',
@@ -190,6 +209,7 @@ export default Vue.extend({
                             phone: string;
                             address: string;
                             role: string;
+                            provider: string;
                         };
 
                         if (this.userData.role) {
@@ -199,7 +219,7 @@ export default Vue.extend({
                         console.error('User document does not exist.');
                     }
                 } catch (error) {
-                    console.error('Error fetching user data:', error.message);
+                    console.error('Error fetching user data:', error);
                 }
             }
         },

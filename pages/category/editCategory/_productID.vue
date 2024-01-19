@@ -26,14 +26,38 @@
                             </div>
                             <div class="form-group">
                                 <label>Product Image</label>
-                                <input type="text" class="form-control" v-model="imageUrl" required/>
+                                <!-- <input type="text" class="form-control" v-model="imageUrl" required/> -->
+                                <div class="drop-zone" @dragover.prevent @drop="handleDrop" @click="openFileDialog">
+                                    <input type="file" ref="fileInput" style="display: none" @change="handleFileInput">
+                                    <img v-if="imageUrl" :src="imageUrl" class="preview-image">
+                                    <span v-else>Drag & Drop or Click to Upload</span>
+                                    <span v-if="imageUrl" @click="removeImage">&times;</span>
+                                </div>
                                 
                             </div>
                             <div class="form-group">
                                 <label>Price</label>
                                 <input type="number" class="form-control" v-model="price" required/>
-                                
-                            </div><br>
+                            </div>
+                            <label>Tags</label>
+                            <div class="tag-input">
+                                <div 
+                                v-for="(tag, index) in tags"
+                                :key="tag"
+                                class="tag"
+                                >
+                                <span @click="removeTag(index)">x</span>
+                                {{ tag }}
+                                </div>
+                                <input
+                                    type="text"
+                                    placeholder="Enter new tag"
+                                    class="tag-text"
+                                    @keydown="updateTag"
+                                    @keydown.delete="removeLastTag"
+                                />
+                            </div>
+                            <br>
                             <v-btn class="submit-btn" type="button" @click="editCategory">Edit</v-btn>
                             <v-btn class="red" @click="backHome">back</v-btn>
                         </form>
@@ -56,7 +80,8 @@
 <script lang="ts">
 import NavBar from "../../../components/NavBar.vue"
 import SignIn from "../../../components/SignIn.vue"
-import { getFirestore, setDoc, doc, collection, updateDoc, getDoc, getDocs } from 'firebase/firestore';
+import { getFirestore, setDoc, doc, updateDoc, getDoc } from 'firebase/firestore';
+import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
 
 export default {
     name: "editCategory",
@@ -67,7 +92,9 @@ export default {
         imageUrl: '',
         price: '',
         productID: '',
+        tags: '',
         editSuccess: false,
+        uploadedImage: null,
     }),
     mounted() {
         try {
@@ -83,6 +110,40 @@ export default {
         
     },
     methods: {
+        openFileDialog() {
+            this.$refs.fileInput.click();
+        },
+        handleDrop(event: any) {
+            event.preventDefault();
+
+            const files = event.dataTransfer.files;
+            if (files.length > 0) {
+                this.handleImage(files[0]);
+            }
+        },
+
+        handleFileInput() {
+            const files = this.$refs.fileInput.files;
+            if (files.length > 0) {
+                this.handleImage(files[0]);
+            }
+        },
+
+        handleImage(file: any) {
+            if (file) {
+                this.uploadedImage = file;
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                this.imageUrl = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+        },
+
+        removeImage() {
+            this.imageUrl = '';
+            this.uploadedImage = null;
+        },
         async fetchExistingData(productID: string) {
             const db = getFirestore();
             const productDocRef = doc(db, 'catagory', productID);
@@ -96,6 +157,7 @@ export default {
                     this.description = productData.description;
                     this.imageUrl = productData.imageUrl;
                     this.price = productData.price;
+                    this.tags = productData.tags;
                 } else {
                     console.error('Product not found.');
                 }
@@ -112,6 +174,7 @@ export default {
                 imageUrl: this.imageUrl,
                 price: this.price,
                 productID: this.productID,
+                tags: this.tags,
             };
 
             try {
@@ -122,6 +185,25 @@ export default {
                 console.error('Error editing category: ', error);
             }
             
+        },
+        updateTag(event) {
+            if (event.code == 'Comma' || event.code == 'Enter') {
+                event.preventDefault()
+                var val = event.target.value.trim()
+
+                if (val.length > 0) {
+                    this.tags.push(val)
+                    event.target.value = ''
+                }
+            }
+        },
+        removeTag(index) {
+            this.tags.splice(index, 1);
+        },
+        removeLastTag(event) {
+            if (event.target.value.length === 0) {
+                this.removeTag(this.tags.length - 1)
+            }
         },
         Success() {
             this.$router.push('/');
@@ -139,7 +221,7 @@ export default {
     background-color: rgb(253, 253, 253);
     color: #5b5353;
     width: 500px;
-    height: 500px;
+    height: auto;
     margin: auto;
     margin-top: 50px;
     padding: 30px;

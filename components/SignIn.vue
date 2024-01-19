@@ -11,7 +11,6 @@
   
 <script lang="ts">
 import Vue from 'vue';
-// import PhoneModal from "./modals/phone-modal.vue"
 import { getAuth, signInWithPopup, GoogleAuthProvider, FacebookAuthProvider  } from "firebase/auth";
 import { getFirestore, doc, setDoc, getDoc } from 'firebase/firestore';
 
@@ -26,8 +25,8 @@ export default Vue.extend({
                 const result = await signInWithPopup(auth, provider);
                 const user = result.user;
 
-                const docRefId = await this.storeUserDataInFirestore(user);
-                this.$router.go();
+                const docRefId = await this.storeUserDataInFirestore(user, 'google');
+                this.$router.go(0);
                 console.log('login with google success ja!', docRefId);
             } catch (error) {
                 console.error('error login in with google');
@@ -41,15 +40,15 @@ export default Vue.extend({
                 const result = await signInWithPopup(auth, provider);
                 const user = result.user;
 
-                const docRefId = await this.storeUserDataInFirestore(user);
-                this.$router.go();
+                const docRefId = await this.storeUserDataInFirestore(user, 'facebook');
+                this.$router.go(0);
                 console.log('login with facebook success', docRefId);
                 
             } catch (error) {
-                console.error('Error logging in with Facebook:', error.message);
+                console.error('Error logging in with Facebook:', error);
             }
         },
-        async storeUserDataInFirestore(user: any) {
+        async storeUserDataInFirestore(user: any, provider: string) {
             const db = getFirestore();
             const userRef = doc(db, 'users', user.uid);
             try {
@@ -62,7 +61,7 @@ export default Vue.extend({
                         phone: user.phone || null, 
                         address: user.address || null, 
                         role: 'user', 
-                        provider: user.provider,
+                        provider: provider,
                     };
 
                     await setDoc(userRef, userData);

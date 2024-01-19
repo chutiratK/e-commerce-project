@@ -114,7 +114,7 @@ export default Vue.extend({
                 const result = await signInWithEmailAndPassword(auth, email, password);
                 const user = result.user;
 
-                await this.storeUserDataInFirestore(user);
+                await this.storeUserDataInFirestore(user, 'email');
                 this.showDialogSignin = false;
             } catch (error) {
                 console.error('Error signing in:', error);
@@ -125,14 +125,17 @@ export default Vue.extend({
         togglePassword() {
             this.showPassword = !this.showPassword;
         },
-        async storeUserDataInFirestore(user:any) {
+        async storeUserDataInFirestore(user:any, provider: string) {
             const db = getFirestore();
             const userRef = collection(db, 'users');
             const userData = {
                 uid: user.uid,
                 displayName: user.displayName,
                 email: user.email,
+                phone: user.phone || null, 
+                address: user.address || null, 
                 role: 'user',
+                provider: provider,
             };
 
             try {

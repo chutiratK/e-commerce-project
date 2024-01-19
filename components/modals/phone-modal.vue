@@ -109,7 +109,7 @@ export default Vue.extend({
 
                     const result = await signInWithCredential(getAuth(), credential);
                     const user = result.user;
-                    await this.storeUserDataInFirestore(user);
+                    await this.storeUserDataInFirestore(user, 'phone');
                     console.log("OTP verified successfully");
                 }
             } catch (error) {
@@ -138,7 +138,7 @@ export default Vue.extend({
                 throw error;
             }
         },
-        async storeUserDataInFirestore(user: any) {
+        async storeUserDataInFirestore(user: any, provider: string) {
             const db = getFirestore();
             const userRef = doc(db, 'users', user.uid);
             try {
@@ -151,6 +151,7 @@ export default Vue.extend({
                         phone: this.phoneNumber || null, 
                         address: user.address || null, 
                         role: 'user',
+                        provider: provider,
                     };
 
                     await setDoc(userRef, userData);

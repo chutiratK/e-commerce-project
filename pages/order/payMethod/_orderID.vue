@@ -21,17 +21,12 @@
           </v-col>
         </v-row>
         <br>
-
         <div v-if="selectedPaymentMethod && selectedPaymentMethod.name === 'Credit Card'" class="creditCard" style="background-color: white; color: #525252;">
-          <div class="creditCardContainer">
+          
+          <!-- <div class="creditCardContainer">
             <div class="creditCardTitle">{{ selectedPaymentMethod.name }}</div>
             <div class="creditCardSubtitle">{{ selectedPaymentMethod.description }}</div>
             <hr><br> 
-            <!-- <form id="payment-form">
-              <div id="payment-element"></div>
-              <button class="payBtn">Pay now</button>
-              <div :class="{ hidden: !message }">{{ message }}</div>
-            </form> -->
             <div ref="paymentForm" class="payForm">
               <div class="input-group-cardNumber">
                 <label for="cardNumber" class="input-label">Card Number</label>
@@ -71,9 +66,9 @@
                 
               </div>
               
-              <br><br>
+              <br><br> -->
               <!-- <v-btn @click="submitPayment" class="creditBtn">Submit Payment</v-btn> -->
-            </div>
+            <!-- </div> -->
           </div>
         </div>
         
@@ -95,81 +90,50 @@
           </div>
         </div>
       </div>
-    </div>
   </v-app>
 </template>
 
 <script lang="ts">
 import Vue from 'vue';
-import { loadStripe, Stripe, StripeElements } from "@stripe/stripe-js";
+import { loadStripe } from '@stripe/stripe-js';
+import { getFirestore, getDoc, onSnapshot, doc} from 'firebase/firestore';
 
 export default Vue.extend({
   name: 'PaymentMethod',
-  components: {
-  },
+  components: {},
   data: () => ({
-      paymentMethods: [
-      {
-          name: 'Credit Card',
-          description: 'Pay with your credit card',
-          image: 'https://www.datavisor.com/wp-content/uploads/2022/04/MasterCard-1.png',
-      },
-      {
-          name: 'PayPal',
-          description: 'Pay with PayPal',
-          image: 'https://th.bing.com/th/id/R.c01292cdd7f51d3520c75031fc479c2b?rik=0qZxmR9AXGhBdw&pid=ImgRaw&r=0',
-      },
-      {
-          name: 'Bank Transfer',
-          description: 'Transfer money from your bank account',
-          image: 'https://cdn1.iconfinder.com/data/icons/business-and-finance-20/200/vector_65_09-512.png',
-      },
-      ],
-      selectedPaymentMethod: false,
-      cardNumber: '',
-      expiryDate: '',
-      cvc: '',
-      loading: false,
-      message: "",
-      stripe: null as Stripe | null,
-      elements: null as StripeElements | null,
+    paymentMethods: [
+    {
+        name: 'Credit Card',
+        description: 'Pay with your credit card',
+        image: 'https://www.datavisor.com/wp-content/uploads/2022/04/MasterCard-1.png',
+    },
+    {
+        name: 'PayPal',
+        description: 'Pay with PayPal',
+        image: 'https://th.bing.com/th/id/R.c01292cdd7f51d3520c75031fc479c2b?rik=0qZxmR9AXGhBdw&pid=ImgRaw&r=0',
+    },
+    {
+        name: 'Bank Transfer',
+        description: 'Transfer money from your bank account',
+        image: 'https://cdn1.iconfinder.com/data/icons/business-and-finance-20/200/vector_65_09-512.png',
+    },
+    ],
+    selectedPaymentMethod: false,
+    cardNumber: '',
+    expiryDate: '',
+    cvc: '',
+    loading: false,
+    message: "",
+    orderId: '',
+    totalAmount: '',
+    paymentElement: null,
+
   }),
-  
   methods: {
-    async initializeStripe() {
-      const stripe = await loadStripe("pk_test_51OPNLwFJUwe1va09pikfEhMZZw3SrXulpaqGMXQbeT9kTm2MB6nbWKNWPNcTe3OJ1fJHw5a0d3H6TzA73NS3Ykjk003g6rTcC7");
-      this.stripe = stripe;
-      this.elements = stripe.elements();
-
-      const paymentElement = this.elements.create("card");
-      paymentElement.mount("#payment-element");
+    selectPaymentMethod(paymentMethod: any) {
+      this.selectedPaymentMethod = paymentMethod;
     },
-    showMessage(messageText: string) {
-      this.message = messageText;
-
-      setTimeout(() => {
-        this.message = "";
-      }, 4000);
-    },
-    setLoading(isLoading: boolean) {
-      this.loading = isLoading;
-    },
-    selectPaymentMethod(paymentMethod) {
-        this.selectedPaymentMethod = paymentMethod;
-    },
-    // async submitPayment() {
-    //   if (this.selectedPaymentMethod && this.selectedPaymentMethod.name === 'Credit Card') {
-    //   //   try {
-    //   //   const orderID = this.$route.params.orderID; 
-    //   //   const response = await axios.post('/create-checkout-session', {
-    //   //   });
-    //   //   console.log('finfin')
-    //   //   window.location.href = response.data.url;
-    //   // } catch (error) {
-    //   //   console.error('Error creating checkout session:', error.message);
-    //   // }
-    //   }
-    // },
 
     // handlePaymentSuccess(token) {
     //   console.log('token id: ', token)
@@ -185,20 +149,38 @@ export default Vue.extend({
     // },
       
   },
+
   computed: {
     currentUser() {
       return this.$store.state.user;
     },
   },
+
   async mounted() {
     try {
-      await this.initializeStripe();
       const orderID = this.$route.params.orderID;
+      this.orderId = orderID;
       console.log('OrderID detail page:', orderID);
+
+      const db = getFirestore();
+      const orderRef = doc(db, 'order', this.currentUser.uid, 'orderUser', orderID);
+      // const orderDoc = await getDoc(orderRef);
+
+      onSnapshot(orderRef, (orderDoc) => {
+        if (orderDoc.exists()) {
+            const orderData = orderDoc.data();
+            this.totalAmount = orderData.totalAmount;
+            console.log('orderData:', this.totalAmount);
+        } else {
+            console.error('Order not found.');
+        }
+      });
+      const stripe = await loadStripe('pk_test_51OPNLwFJUwe1va09pikfEhMZZw3SrXulpaqGMXQbeT9kTm2MB6nbWKNWPNcTe3OJ1fJHw5a0d3H6TzA73NS3Ykjk003g6rTcC7');
     } catch (error) {
-      console.error('Error initializing Stripe:', error.message);
+      console.error('Error :', error);
     }
   }
+
 });
 </script>
 

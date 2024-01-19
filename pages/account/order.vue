@@ -100,7 +100,7 @@ export default Vue.extend({
     background-color: rgb(253, 253, 253);
     color:#5b5353 ;
     width: 700px;
-    height:100%;
+    height: auto;
 }
 .content h2, hr{
     margin: 20px 40px;

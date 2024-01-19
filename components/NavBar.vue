@@ -12,15 +12,11 @@
                     <span class="font-weight-light">E-Comjai</span>
                 </v-toolbar-title>
             </router-link>
-
+            <Search />
             <div class="navbar">
                 <router-link class="link" to="/">Home</router-link>
                 <router-link class="link" to="/about">About</router-link>
                 <router-link class="link" to="/">Member</router-link>
-                <div class="search-bar">
-                    <input type="text" v-model="searchQuery" placeholder="Search">
-                    <button @click="search">Search</button>
-                </div>
                 <template v-if="currentUser">
                     <v-menu offset-y >
                         <template v-slot:activator="{ on, attrs }">
@@ -76,14 +72,15 @@
 import "bootstrap-icons/font/bootstrap-icons.css";
 import "firebase/auth";
 import { getAuth, signOut } from 'firebase/auth';
-import { getFirestore, collection, onSnapshot , query, getDocs, where} from 'firebase/firestore';
+import { getFirestore, collection, onSnapshot} from 'firebase/firestore';
 import Vue from 'vue'
 import Modal from '../components/modals/login-modal.vue'
 import ShopCart from '../components/ShoppingCart.vue'
+import Search from '../components/searchTag.vue'
 
 export default Vue.extend ({
     name: "NavBar",
-    components: { Modal, ShopCart }, 
+    components: { Modal, ShopCart, Search }, 
     computed: { 
         currentUser() {
             return this.$store.state.user
@@ -92,14 +89,14 @@ export default Vue.extend ({
     data: () => ({
         showCart: false,
         cartItemCount: '0',
-        searchQuery: '',
-        filteredProducts: [],
+
     }),
     methods: {
         async signOut() {
             const auth = getAuth();
             signOut(auth).then(() => {
-                this.$router.go();
+                // this.$router.go(0);
+                this.$router.push('/');
             }).catch((error) => {
                 console.error("error: ", error.message)
             });
@@ -123,15 +120,6 @@ export default Vue.extend ({
         toggleCart() {
             this.$router.push({ name: 'shopCart' });
             // this.$store.commit('toggleCart');
-        },
-        async search() {
-            const db = getFirestore();
-            const categoryRef = collection(db, 'category');
-            const snapshot = await getDocs(categoryRef);
-
-            console.log('search: ', snapshot)
-            // Redirect to a search results page or handle the filteredProducts array as needed
-            // this.$router.push({ name: 'searchResults', query: { q: this.searchQuery } });
         },
     },
     mounted() {
@@ -168,7 +156,6 @@ export default Vue.extend ({
 .sub-menu-link:hover {
     background-color: rgba(84, 82, 82, 0.3);
     border-radius: 5px;
-
 }
 .navbar {
     margin-left:auto;
@@ -209,18 +196,4 @@ export default Vue.extend ({
     top: 50%;
     right: -10px;
 }
-.search-bar {
-    display: flex;
-    align-items: center;
-    margin-left: auto;
-}
-
-.search-bar input {
-    padding: 8px;
-    margin-right: 10px;
-    background-color: #ffffff; 
-    border: 1px solid #ccc; 
-    border-radius: 25px; 
-}
-
 </style>

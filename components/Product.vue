@@ -11,8 +11,12 @@
                         <h3>{{ product.categoryName }}</h3>
                         <p>{{ product.description }}</p>
                         <p>{{ product.price }}</p>
+                        <div class="tags-container">
+                            <span v-for="(tag, tagIndex) in product.tags" :key="tagIndex">{{ tag }}</span>
+                        </div>  
                         <v-spacer></v-spacer>
                         <v-btn class="detailBtnn" @click="productDetail(product.productID)">detail</v-btn>
+                        <br>
                     </div>
                 </div>
             </div>
@@ -29,6 +33,7 @@ interface CatalogItem {
     description: string;
     price: number;
     imageUrl: string;
+    tags: Array<string>;
     
 }
 export default {
@@ -69,7 +74,6 @@ export default {
                 const userDocRef = doc(usersCollectionRef, this.currentUser.uid);
                 const userDocSnapshot = await getDoc(userDocRef);
 
-                console.log("user: ",)
                 if (userDocSnapshot.exists()) {
                     const userData = userDocSnapshot.data();
 
@@ -103,7 +107,7 @@ export default {
     background-color: rgb(253, 253, 253);
     color:#5b5353 ;
     width: 300px;
-    height:400px;
+    height:auto;
     margin-top: 50px;
     box-shadow: 0 30px 30px #a4a3a3;
 }
@@ -124,10 +128,22 @@ export default {
 }
 .detailBtnn {
     width: 85%;
+    margin: 10px;
 }
 .gotoAdmin {
     display: flex;
     margin: auto;
+}
+.tags-container {
+  display: flex;
+  flex-wrap: wrap;
+}
+.tags-container span {
+    background-color: #ccc;
+    padding: 0 8px;
+    border-radius: 10px;
+    margin-right: 10px;
+    margin-bottom: 3px;
 }
 </style>
   

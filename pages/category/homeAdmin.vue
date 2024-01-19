@@ -14,10 +14,15 @@
                             <p>{{ product.description }}</p>
                             <p>{{ product.price }}</p>
                             <v-spacer></v-spacer>
-                            <!-- <router-link :to="{ name: '/category/editCategory' }">EDIT</router-link> -->
-                            <v-btn class="editBtn" @click="editProduct(product.productID)">EDIT</v-btn>
-                            <v-btn class="detailBtn" @click="productDetail(product.productID)">DETAIL</v-btn>
-                            <v-btn class="red" @click="deleteProduct(product.productID)">DELETE</v-btn>
+                            <div class="tags-container">
+                                <span v-for="(tag, tagIndex) in product.tags" :key="tagIndex">{{ tag }}</span>
+                            </div><br>
+                            <div class="Allbutton">
+                                <v-btn class="editBtn" @click="editProduct(product.productID)">EDIT</v-btn>
+                                <v-btn class="detailBtn" @click="productDetail(product.productID)">DETAIL</v-btn>
+                                <v-btn class="red" @click="deleteProduct(product.productID)">DELETE</v-btn>
+                            </div>
+                            <br>
                         </div>
                     </div>
                 </div>
@@ -54,7 +59,7 @@ interface CatalogItem {
     description: string;
     price: number;
     imageUrl: string;
-    
+    tags: Array<string>;
 }
 export default {
     data:() => ({
@@ -151,7 +156,7 @@ export default {
     background-color: rgb(253, 253, 253);
     color:#5b5353 ;
     width: 300px;
-    height:400px;
+    height: auto;
     margin-top: 50px;
 }
 .product-card img {
@@ -177,5 +182,17 @@ export default {
     background-color:rgb(94, 89, 134) !important;
     margin: auto;
 }
+.tags-container {
+  display: flex;
+  flex-wrap: wrap;
+}
+.tags-container span {
+    background-color: #ccc;
+    padding: 0 8px;
+    border-radius: 10px;
+    margin-right: 10px;
+    margin-bottom: 3px;
+}
+
 </style>
   
