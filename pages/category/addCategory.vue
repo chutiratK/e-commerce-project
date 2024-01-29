@@ -1,313 +1,267 @@
 <template>
-    <v-app style="background-color:rgb(236, 236, 236);">
-        <div class="category">   
-            <NavBar /> 
-            <div >
-                <div class="row">
-                    <div class="text-center">
-                        <h2>Add category</h2>
-                    </div>
-                </div>
-                <br>
-                <hr> 
-                <br>
-                <div class="row">
-                    <div class="col-2"></div>
-                    <div class="col-8">
-                        <form>
-                            <div class="form-group">
-                                <label>Product Name</label>
-                                <input type="text" class="form-control" v-model="categoryName" required/>
-                                <span v-if="errorMessageName" class="error-message">please fill this field</span>
-                            </div>
-                            <div class="form-group">
-                                <label>Product Description</label>
-                                <textarea type="text" class="form-control" v-model="description"></textarea>
-                            </div>
-                            <div class="form-group">
-                                <label>Product Image</label>
-                                <!-- <input type="text" class="form-control" v-model="imageUrl" required/> -->
-                                <div class="drop-zone" @dragover.prevent @drop="handleDrop" @click="openFileDialog">
-                                    <input type="file" ref="fileInput" style="display: none" @change="handleFileInput">
-                                    <img v-if="imageUrl" :src="imageUrl" class="preview-image">
-                                    <span v-else>Drag & Drop or Click to Upload</span>
-                                    <span v-if="imageUrl" @click="removeImage">&times;</span>
-                                </div>
-                                <span v-if="errorMessageImage" class="error-message">please fill this field</span>
-                            </div>
-                            <div class="form-group">
-                                <label>Price</label>
-                                <input type="number" class="form-control" v-model="price" required/>
-                                <span v-if="errorMessagePrice" class="error-message">please fill this field</span>
-                            </div>
-                            <label>Tags</label>
-                            <div class="tag-input">
-                                <div 
-                                v-for="(tag, index) in tags"
-                                :key="tag"
-                                class="tag"
-                                >
-                                <span @click="removeTag(index)">x</span>
-                                {{ tag }}
-                                </div>
-                                <input
-                                    type="text"
-                                    placeholder="Enter new tag"
-                                    class="tag-text"
-                                    @keydown="addTag"
-                                    @keydown.delete="removeLastTag"
-                                />
-                            </div>
-                            <br>
-                            <v-btn class="submit-btn" type="button" @click="addCategory">Submit</v-btn>
-                            <v-btn class="red" @click="backHome">back</v-btn>
-                        </form>
-                    </div>
-                </div>
-            </div>
-            <v-dialog v-model="addSuccess" max-width="400px" >
-                <v-card class="popUp" style="background-color: white; color: #5b5353">
-                    <center>
-                        <img src="../../assets/images/check.webp" width="200px" height="200px">
-                        <h3>added successfully!</h3>
-                        <v-btn class="success" @click="Success">ok</v-btn>
-                    </center>
-                </v-card>
-            </v-dialog>
+  <div class="category-container">
+    <NavBar />
+    <h1>Categories</h1>
+    <v-btn class="addCategory" @click="addCategoryBtn">+ New Category</v-btn>
+
+    <div class="categoryy">
+      <div
+        v-for="(category, index) in categoryData"
+        :key="index"
+        class="category-card"
+        @click="categoryDetail(categoryId)"
+      >
+        <div class="more" @click="toggleDropdown">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512">
+            <path
+              d="M8 256a56 56 0 1 1 112 0A56 56 0 1 1 8 256zm160 0a56 56 0 1 1 112 0 56 56 0 1 1 -112 0zm216-56a56 56 0 1 1 0 112 56 56 0 1 1 0-112z"
+            />
+          </svg>
         </div>
-    </v-app>
+        <div class="dropdown-content" v-show="isDropdownOpen">
+          <div @click="editItem">Edit</div>
+          <div @click="deleteItem">Delete</div>
+        </div>
+        <span>{{ category.categoryId }} {{ category.productCount }}</span>
+      </div>
+    </div>
+
+    <v-dialog v-model="addCategoryModal" max-width="400px">
+      <v-card class="popUp" style="background-color: white; color: #5b5353">
+        <v-card-title>Add category</v-card-title>
+        <hr />
+        <div class="addCate">
+          <label>Category Name</label><br />
+          <input v-model="categoryName" />
+        </div>
+        <center>
+          <v-btn class="green" @click="Success">Add</v-btn>
+          <v-btn class="red" @click="cancel">Cancel</v-btn>
+        </center>
+      </v-card>
+    </v-dialog>
+    <v-dialog v-model="addCategorySuccess" max-width="400px">
+      <v-card class="popUp" style="background-color: white; color: #5b5353">
+        <center>
+          <img
+            src="../../assets/images/check.webp"
+            width="200px"
+            height="200px"
+          />
+          <h3>add successfully!</h3>
+          <v-btn class="green" @click="ok">OK</v-btn>
+        </center>
+      </v-card>
+    </v-dialog>
+  </div>
 </template>
 
 <script lang="ts">
-import { getFirestore, collection, addDoc, setDoc, doc } from 'firebase/firestore';
-import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import {
+  getFirestore,
+  collection,
+  getDocs,
+  onSnapshot,
+  deleteDoc,
+  setDoc,
+  doc,
+} from "firebase/firestore";
 
-
-export default {
-    name: "addCategory",
-    components: {  },
-    data:() => ({
-        categoryName: '',
-        description: '',
-        imageUrl: '',
-        price: '',
-        uploadedImage: null,
-        addSuccess: false,
-        errorMessageName: false,
-        errorMessageImage: false,
-        errorMessagePrice: false,
-        tags: []
-    }),
-    methods: {
-        openFileDialog() {
-            this.$refs.fileInput.click();
-        },
-        removeImage() {
-            this.imageUrl = '';
-            this.uploadedImage = null;
-        },
-        async uploadImage() {
-            if (this.uploadedImage) {
-                const storageRef = ref(getStorage(), 'images/' + this.uploadedImage.name);
-                try {
-                    const uploadTask = await uploadBytes(storageRef, this.uploadedImage);
-                    this.imageUrl = await getDownloadURL(uploadTask.ref);
-                    console.log('Image uploaded successfully');
-                } catch (error) {
-                    console.error('Error uploading image:', error);
-                // Handle the error, such as showing a user-friendly message
-                }
-            }
-        },
-        async handleFileInput(event: any) {
-            const files = event.target.files;
-            if (files.length > 0) {
-                if (this.uploadedImage) {
-                    alert('Only one image can be uploaded.');
-                    return;
-                }
-                const image = files[0];
-                try {
-                    const storageRef = ref(getStorage(), 'images/' + image.name);
-                    const uploadTask = await uploadBytes(storageRef, image);
-                    const imageUrl = await getDownloadURL(uploadTask.ref);
-                    this.imageUrl = imageUrl;
-                    this.uploadedImage = image; 
-                    console.log("upload success");
-                } catch (error) {
-                    console.error('Error uploading image:', error);
-                }
-            }
-        },
-        async handleDrop(event: any) {
-            const files = event.dataTransfer.files;
-            if (files.length > 0) {
-                if (this.uploadedImage) {
-                    alert('Only one image can be uploaded.');
-                    return;
-                }
-                const image = files[0];
-                try {
-                    const storageRef = ref(getStorage(), 'images/' + image.name);
-                    const uploadTask = await uploadBytes(storageRef, image);
-                    const imageUrl = await getDownloadURL(uploadTask.ref);
-                    this.imageUrl = imageUrl;
-                    this.uploadedImage = image; 
-                    console.log("upload success");
-                } catch (error) {
-                    console.error('Error uploading image:', error);
-                }
-            }
-        },
-        async addCategory () {
-            await this.uploadImage();
-            if (this.categoryName && this.imageUrl && this.price) {
-                const db = getFirestore();
-                
-                const categoryData = {
-                    productID: '',
-                    categoryName: this.categoryName,
-                    description: this.description,
-                    imageUrl: this.imageUrl,
-                    price: this.price,
-                    tags: this.tags
-                };
-                try {
-                    const docRef = await addDoc(collection(db, 'catagory'), categoryData);
-                    console.log('Category added successfully with ID: ', docRef.id);
-                    categoryData.productID = docRef.id;
-                    await setDoc(doc(db, 'catagory', docRef.id), categoryData);
-                    this.addSuccess = true;
-                    
-                } catch (error) {
-                    console.error('Error adding category: ', error);
-                }
-            } else {
-                if (!this.categoryName) {this.errorMessageName = true;}
-                if (!this.imageUrl) {this.errorMessageImage = true;}
-                if (!this.price) {this.errorMessagePrice = true;}
-            }
-            
-        },
-        addTag(event) {
-            if (event.code == 'Comma' || event.code == 'Enter') {
-                event.preventDefault()
-                var val = event.target.value.trim()
-
-                if (val.length > 0) {
-                    this.tags.push(val)
-                    event.target.value = ''
-                }
-            }
-        },
-        removeTag(index) {
-            this.tags.splice(index, 1);
-        },
-        removeLastTag(event) {
-            if (event.target.value.length === 0) {
-                this.removeTag(this.tags.length - 1)
-            }
-        },
-        Success() {
-            this.$router.push('/category/homeAdmin');
-        },
-        backHome() {
-            this.$router.push('/category/homeAdmin');
-        },
-    }
+interface CatalogItem {
+  productID: string;
+  category: string;
+  productName: string;
+  description: string;
+  price: number;
+  imageUrl: string;
+  tags: Array<string>;
 }
+export default {
+  data: () => ({
+    catalogData: [] as CatalogItem[],
+    categoryProductIds: [],
+    categoryData: [],
+    isDropdownOpen: false,
+    addCategoryModal: false,
+    addCategorySuccess: false,
+    categoryName: "",
+  }),
+  methods: {
+    addCategoryBtn() {
+      this.addCategoryModal = true;
+    },
+
+    async fetchCatalogData() {
+      const db = getFirestore();
+      const catalogCollectionRef = collection(db, "category");
+
+      try {
+        const catalogQuerySnapshot = await getDocs(catalogCollectionRef);
+        const categoryData = [];
+        for (const doc of catalogQuerySnapshot.docs) {
+          const categoryId = doc.id;
+
+          const productsCollectionRef = collection(
+            db,
+            "category",
+            categoryId,
+            "products"
+          );
+          const productsQuerySnapshot = await getDocs(productsCollectionRef);
+
+          const productCount = productsQuerySnapshot.size;
+          categoryData.push({ categoryId, productCount });
+          this.categoryData = categoryData;
+        }
+        console.log("Category Data:", categoryData);
+      } catch (error) {
+        console.error("Error fetching user data:", error.message);
+      }
+    },
+    categoryDetail() {},
+    async categoryCount() {
+      const db = getFirestore();
+      const cartDocRef = collection(
+        db,
+        "category",
+        this.currentUser.uid,
+        "cartUser"
+      );
+      onSnapshot(cartDocRef, (snapshot) => {
+        this.cartItemCount = snapshot.size.toString();
+      });
+    },
+    async Success() {
+      const db = getFirestore();
+      const catalogCollectionRef = collection(db, "category");
+      const categoryNameToCheck = this.categoryName.trim();
+      const catalogQuerySnapshot = await getDocs(catalogCollectionRef);
+      try {
+        const categoryNames = catalogQuerySnapshot.docs.map((doc) => doc.id);
+
+        if (categoryNames.includes(categoryNameToCheck)) {
+          alert(
+            "Category name already exists. Please choose a different name."
+          );
+        } else {
+          const newCategoryDocRef = doc(
+            catalogCollectionRef,
+            this.categoryName
+          );
+          await setDoc(newCategoryDocRef, {});
+          this.addCategoryModal = false;
+          this.addCategorySuccess = true;
+          this.fetchCatalogData();
+        }
+      } catch (error) {
+        console.error("Error checking category name:", error.message);
+      }
+    },
+    toggleDropdown() {
+      this.isDropdownOpen = !this.isDropdownOpen;
+    },
+    editItem() {
+      console.log("Edit item");
+      this.isDropdownOpen = false;
+    },
+    deleteItem() {
+      console.log("Delete item");
+      this.isDropdownOpen = false;
+    },
+    cancel() {
+      this.addCategoryModal = false;
+    },
+    ok() {
+      this.addCategorySuccess = false;
+    },
+  },
+  mounted() {
+    (this as any).fetchCatalogData();
+  },
+};
 </script>
 
 <style>
-.category {
-    border-radius: 10px;
-    background-color: rgb(253, 253, 253);
-    color: #5b5353;
-    width: 500px;
-    height: auto;
-    margin: auto;
-    margin-top: 50px;
-    padding: 30px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
+h1 {
+  color: #636363;
 }
-.submit-btn {
-    justify-content: center;
-    margin: auto;
+.addCategory {
+  background-color: rgb(145, 145, 245) !important;
+  color: #fbfbfb;
 }
-.form-group input {
-    border: 1px solid #ccc; 
-    padding: 8px; 
-    border-radius: 4px;
-    width: 300px;
+.categoryy {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-around;
 }
-.form-group textarea {
-    border: 1px solid #ccc; 
-    padding: 8px; 
-    border-radius: 4px;
-    width: 300px;
+.category-card {
+  width: 250px;
+  height: 200px;
+  border-radius: 10px;
+  background-image: url("../../assets/images/unicornBG.webp");
+  color: #ffffff;
+  margin-top: 50px;
+  box-shadow: 0 10px 10px #a4a3a3;
+  display: flex;
+  align-items: flex-end;
 }
-.popUp {
-    height: 400px;
+.category-card span {
+  font-size: 22px;
+  font-weight: bold;
+  margin-left: 10px;
 }
-.popUp img {
-    margin-top: 50px;
+.category-card:hover {
+  background-color: rgb(207, 207, 207);
+  cursor: pointer;
+  box-shadow: 0 20px 20px #a4a3a3;
 }
-.error-message {
-    color: red;
+.more {
+  position: relative;
+  top: 0;
+  right: 0;
 }
-.form-group .drop-zone {
-    border: 2px dashed #ccc;
-    padding: 20px;
-    text-align: center;
-    cursor: pointer;
+.more svg {
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+  fill: #ffffff;
 }
-.form-group .drop-zone:hover {
-    background-color: #f5f5f5;
+
+.more svg:hover {
+  background-color: #ffffff;
+  opacity: 0.1;
+  border-radius: 50%;
+  fill: #2f61d4;
 }
-.form-group .drop-zone:active {
-    background-color: #e0e0e0;
+
+.dropdown-content {
+  display: none;
+  position: absolute;
+  top: 100%;
+  right: 0;
+  background-color: #f9f9f9;
+  min-width: 160px;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+  z-index: 1;
 }
-.preview-image {
-    width: 100px;
-    height: 100px;
+
+.dropdown-content div {
+  padding: 10px;
+  cursor: pointer;
 }
-.drop-zone {
-    border-radius: 7px;
-    color: #869be6;
+
+.dropdown-content div:hover {
+  background-color: #ddd;
 }
-.drop-zone:hover{
-    opacity: 0.6;
+.addCate input {
+  border: 1px solid #ccc;
+  padding: 8px;
+  border-radius: 4px;
+  width: 300px;
 }
-.tag-input {
-    width: 100%;
-    border: 1px solid #ccc; 
-    font-size: 0.9em;
-    height: auto;
-    box-sizing: border-box;
-    padding: 0 10px;
-    border-radius: 8px;
-}
-.tag {
-    height: 30px;
-    float: left;
-    margin-left: 10px;
-    background-color: #ccc;
-    margin-top: 10px;
-    line-height: 30px;
-    padding: 0 5px;
-    border-radius: 8px;
-}
-.tag span{
-    cursor: pointer;
-    opacity: 0.75;
-}
-.tag-text {
-    border: none;
-    outline: none;
-    font-size: 0.9em;
-    line-height: 50px;
-    background: none;
+.addCate {
+  margin-left: 40px;
+  margin-bottom: 65px;
+  margin-top: 30px;
 }
 </style>

@@ -24,6 +24,7 @@ export default Vue.extend ({
     methods: {
         async search() {
             this.$router.push({ path: '/search', query: { q: this.searchQuery } });
+            this.searchTag();
         },
     },
 
@@ -32,7 +33,7 @@ export default Vue.extend ({
 
 <style>
 .searchIcon svg {
-    fill:#ccc
+    fill:#dddddd
 }
 .search-bar {
     display: flex;
@@ -43,7 +44,7 @@ export default Vue.extend ({
 
 .search-bar input {
     padding: 8px;
-    margin-right: 10px;
+    margin-right: 15px;
     background-color: #ffffff; 
     opacity: 0.75;
     border: 1px solid #ccc; 
@@ -51,6 +52,6 @@ export default Vue.extend ({
     flex: 1;
 }
 .searchIcon {
-    margin-right: 10px;
+    margin-right: 15px;
 }
 </style>

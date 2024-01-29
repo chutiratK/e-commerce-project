@@ -22,53 +22,22 @@
         </v-row>
         <br>
         <div v-if="selectedPaymentMethod && selectedPaymentMethod.name === 'Credit Card'" class="creditCard" style="background-color: white; color: #525252;">
-          
-          <!-- <div class="creditCardContainer">
+          <div class="creditCardContainer">
             <div class="creditCardTitle">{{ selectedPaymentMethod.name }}</div>
             <div class="creditCardSubtitle">{{ selectedPaymentMethod.description }}</div>
             <hr><br> 
-            <div ref="paymentForm" class="payForm">
-              <div class="input-group-cardNumber">
-                <label for="cardNumber" class="input-label">Card Number</label>
-                <input 
-                v-model="cardNumber" 
-                id="cardNumber" 
-                type="text" 
-                @input="formatCardNumber" 
-                maxlength="19" 
-                placeholder="0000 0000 0000 0000" 
-                required >
-              </div><br>
-
-              <div class="input-row">
-                <div class="input-group-expiryDate">
-                  <label for="expiryDate" class="input-label">Expiry Date</label>
-                  <input 
-                  v-model="expiryDate" 
-                  id="expiryDate" 
-                  type="text" 
-                  maxlength="5" 
-                  @input="formatExpiryDate" 
-                  placeholder="MM/YY" 
-                  required>
-                </div>
-                <div class="input-group-cvc">
-                  <label for="cvc" class="input-label">CVC</label>
-                  <input 
-                  v-model="cvc" 
-                  id="cvc" 
-                  type="text" 
-                  maxlength="3" 
-                  @input="formatCvc" 
-                  placeholder="123" 
-                  required>
-                </div>
-                
-              </div>
-              
-              <br><br> -->
-              <!-- <v-btn @click="submitPayment" class="creditBtn">Submit Payment</v-btn> -->
-            <!-- </div> -->
+            <div>
+              <stripe-element-card
+                ref="elementRef"
+                :pk="publishableKey"
+                @token="tokenCreated"
+              />
+              <br>
+              <button class="payBtn" id="submit" @click="submit">
+                <div class="spinner hidden" id="spinner"></div>
+                <span id="button-text">{{ this.totalAmount }} bath</span>
+              </button>
+            </div>
           </div>
         </div>
         
@@ -90,17 +59,24 @@
           </div>
         </div>
       </div>
+    </div>
   </v-app>
 </template>
 
 <script lang="ts">
 import Vue from 'vue';
 import { loadStripe } from '@stripe/stripe-js';
+import { StripeElementCard } from '@vue-stripe/vue-stripe';
 import { getFirestore, getDoc, onSnapshot, doc} from 'firebase/firestore';
 
 export default Vue.extend({
   name: 'PaymentMethod',
-  components: {},
+  components: { StripeElementCard, },
+  computed: { 
+      currentUser() {
+          return this.$store.state.user
+      },
+    },
   data: () => ({
     paymentMethods: [
     {
@@ -120,24 +96,25 @@ export default Vue.extend({
     },
     ],
     selectedPaymentMethod: false,
-    cardNumber: '',
-    expiryDate: '',
-    cvc: '',
     loading: false,
     message: "",
     orderId: '',
     totalAmount: '',
     paymentElement: null,
-
+    publishableKey: 'pk_test_51OPNLwFJUwe1va09pikfEhMZZw3SrXulpaqGMXQbeT9kTm2MB6nbWKNWPNcTe3OJ1fJHw5a0d3H6TzA73NS3Ykjk003g6rTcC7',
+    token: null,
   }),
   methods: {
     selectPaymentMethod(paymentMethod: any) {
       this.selectedPaymentMethod = paymentMethod;
     },
+    submit () {
+      this.$refs.elementRef.submit();
+    },
+    handlePaymentSuccess(token) {
+      console.log('token id: ', token)
+    },
 
-    // handlePaymentSuccess(token) {
-    //   console.log('token id: ', token)
-    // },
     // formatCardNumber() {
     //   this.cardNumber = this.cardNumber.replace(/\D/g, '').replace(/(.{4})/g, '$1 ').trim();
     // },
@@ -148,12 +125,6 @@ export default Vue.extend({
     //   this.cvc = this.cvc.replace(/\D/g, '').substring(0, 3);
     // },
       
-  },
-
-  computed: {
-    currentUser() {
-      return this.$store.state.user;
-    },
   },
 
   async mounted() {

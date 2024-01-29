@@ -99,5 +99,16 @@ export default {
   // Build Configuration: https://go.nuxtjs.dev/config-build
   build: {
   },
+  env: {
+    FIREBASE_API_KEY: process.env.FIREBASE_API_KEY,
+    FIREBASE_AUTH_DOMAIN: process.env.FIREBASE_AUTH_DOMAIN,
+    FIREBASE_PROJECT_ID: process.env.FIREBASE_PROJECT_ID,
+    FIREBASE_STORAGE_BUCKET: process.env.FIREBASE_STORAGE_BUCKET,
+    FIREBASE_MESSAGEING_SENDER_ID: process.env.FIREBASE_MESSAGEING_SENDER_ID,
+    FIREBASE_APP_ID: process.env.FIREBASE_APP_ID,
+    FIEBASE_MEASUREMENT_ID: process.env.FIEBASE_MEASUREMENT_ID,
+    STRIPE_API_PUBLIC_KEY: process.env.STRIPE_API_PUBLIC_KEY,
+    STRIPE_API_SECRET_KEY: process.env.STRIPE_API_SECRET_KEY,
+  },
 
 }

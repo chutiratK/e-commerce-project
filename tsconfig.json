@@ -38,5 +38,5 @@
   "include": [
     "**/*.ts",
     "**/*.d.ts"
-, "middleware/auth.js", "middleware/auth.js"  ]
+, "middleware/auth.js", "middleware/auth.js", "server.ts"  ]
 }

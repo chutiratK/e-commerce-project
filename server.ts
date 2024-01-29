@@ -1,66 +1,67 @@
-const express = require('express');
-const bodyParser = require('body-parser');
-const stripe = require('stripe')('sk_test_51OPNLwFJUwe1va09f52NR33CExT8eu4n6l7AFS4iWWC8GtgpJNYD7ehhnIW5wPSKMRCRezzgDJsceeZK2mldW6CE00eiP3nHrq');
-
-const app = express();
-app.use(bodyParser.json());
-
-app.post('/charge', async (req, res) => {
-    const token = req.body.token;
-    const amount = 10;
-
-    try {
-        const charge = await stripe.charges.create({
-            amount,
-            currency: 'thb',
-            source: token,
-        });
-
-        // ทำสิ่งที่คุณต้องการหลังจากการชำระเงินเสร็จสมบูรณ์
-        console.log(charge);
-        res.status(200).send('Payment successful');
-    } catch (error) {
-        console.error(error);
-        res.status(500).send('Payment failed');
-    }
-});
-
-app.listen(3000, () => {
-    console.log('Server is running on port 3000');
-});
-
-
-// const Stripe = require("Stripe");
-// const express = require("express");
-// const stripe = new Stripe('sk_test_51OPNLwFJUwe1va09f52NR33CExT8eu4n6l7AFS4iWWC8GtgpJNYD7ehhnIW5wPSKMRCRezzgDJsceeZK2mldW6CE00eiP3nHrq');
+// const express = require('express');
+// const bodyParser = require('body-parser');
+// const stripe = require('stripe')('sk_test_51OPNLwFJUwe1va09f52NR33CExT8eu4n6l7AFS4iWWC8GtgpJNYD7ehhnIW5wPSKMRCRezzgDJsceeZK2mldW6CE00eiP3nHrq');
 
 // const app = express();
+// app.use(bodyParser.json());
 
-// app.use(express.static("public"));
-// app.use(express.json());
+// app.post('/charge', async (req, res) => {
+//     const token = req.body.token;
+//     const amount = 10;
 
-// // const calculateOrderAmount = (items) => {
-// //   return 24 * 100;
-// // };
+//     try {
+//         const charge = await stripe.charges.create({
+//             amount,
+//             currency: 'thb',
+//             source: token,
+//         });
 
-// app.post("/create-payment-intent", async (req, res) => {
-//   const { items, totalAmount  } = req.body;
-  
-//   // Create a PaymentIntent with the order amount and currency
-//   const paymentIntent = await stripe.paymentIntents.create({
-//     amount: totalAmount * 100,
-//     currency: "thb",
-//     automatic_payment_methods: {
-//       enabled: true,
-//     },
-//   });
-
-//   res.send({
-//     clientSecret: paymentIntent.client_secret,
-//   });
+//         // ทำสิ่งที่คุณต้องการหลังจากการชำระเงินเสร็จสมบูรณ์
+//         console.log(charge);
+//         res.status(200).send('Payment successful');
+//     } catch (error) {
+//         console.error(error);
+//         res.status(500).send('Payment failed');
+//     }
 // });
 
-// app.listen(4242, () => console.log("Node server listening on port 4242!"));
+// app.listen(3000, () => {
+//     console.log('Server is running on port 3000');
+// });
+
+
+
+const Stripe = require("Stripe");
+const express = require("express");
+const stripe = new Stripe('sk_test_51OPNLwFJUwe1va09f52NR33CExT8eu4n6l7AFS4iWWC8GtgpJNYD7ehhnIW5wPSKMRCRezzgDJsceeZK2mldW6CE00eiP3nHrq');
+
+const app = express();
+
+app.use(express.static("/public"));
+app.use(express.json());
+
+// const calculateOrderAmount = (items) => {
+//   return 24 * 100;
+// };
+
+app.post("/create-payment-intent", async (req, res) => {
+  const { items, totalAmount  } = req.body;
+  
+  // Create a PaymentIntent with the order amount and currency
+  const paymentIntent = await stripe.paymentIntents.create({
+    amount: totalAmount * 100,
+    currency: "thb",
+    automatic_payment_methods: {
+      enabled: true,
+    },
+  });
+
+  res.send({
+    clientSecret: paymentIntent.client_secret,
+  });
+});
+
+app.listen(4242, () => console.log("Node server listening on port 4242!"));
 
 
 // const stripe = require('stripe')('sk_test_51OPNLwFJUwe1va09f52NR33CExT8eu4n6l7AFS4iWWC8GtgpJNYD7ehhnIW5wPSKMRCRezzgDJsceeZK2mldW6CE00eiP3nHrq');

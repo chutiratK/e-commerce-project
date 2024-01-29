@@ -1,8 +1,7 @@
 <template>
   <div>
-    <v-btn v-if="isAdmin" @click="goToAdminPage" class="gotoAdmin"
-      >Go to Admin Page</v-btn
-    >
+    <NavBar />
+    <Nuxt />
     <div class="product-container">
       <div v-for="(product, index) in catalogData" :key="index">
         <div class="product-card">
@@ -16,6 +15,7 @@
           </center>
           <div class="product1">
             <h3>{{ product.productName }}</h3>
+            <!-- <p>{{ product.description }}</p> -->
             <p>{{ product.price }}</p>
             <div class="tags-container">
               <span v-for="(tag, tagIndex) in product.tags" :key="tagIndex">{{
@@ -23,9 +23,7 @@
               }}</span>
             </div>
             <v-spacer></v-spacer>
-            <v-btn
-              class="detailBtnn"
-              @click="productDetail(product.productID, product.category)"
+            <v-btn class="detailBtnn" @click="productDetail(product.productID)"
               >detail</v-btn
             >
             <br />
@@ -47,7 +45,6 @@ import {
 
 interface CatalogItem {
   productID: string;
-  category: string;
   productName: string;
   description: string;
   price: number;
@@ -58,63 +55,43 @@ export default {
   data: () => ({
     catalogData: [] as CatalogItem[],
     isAdmin: false,
+    categoryQuery: "",
   }),
   computed: {
     currentUser() {
       return this.$store.state.user;
     },
   },
+  created() {
+    this.categoryQuery = this.$route.query.q || "";
+    console.log("this.categoryQuery ", this.categoryQuery);
+  },
   methods: {
-    productDetail(productID: string, category: string) {
-      // this.$router.push("/category/productDetail/" + category +"-"+ productID);
-      this.$router.push({
-        path: "/category/productDetail/",
-        query: { category, productID },
-      });
+    productDetail(productID: string) {
+      this.$router.push("/category/productDetail/" + productID);
     },
     async fetchData() {
       const db = getFirestore();
-      const catalogCollectionRef = collection(db, "category");
+      const catalogCollectionRef = collection(
+        db,
+        "category",
+        this.categoryQuery,
+        "products"
+      );
 
       try {
         const catalogQuerySnapshot = await getDocs(catalogCollectionRef);
 
-        const catalogProductIds = catalogQuerySnapshot.docs.map(
-          (doc) => doc.id
-        );
-        console.log("catalogProductIds", catalogProductIds);
+        const catalogData: CatalogItem[] = [];
+        catalogQuerySnapshot.forEach((doc) => {
+          const data = doc.data() as CatalogItem;
+          catalogData.push(data);
+        });
 
-        const allCatalogData: CatalogItem[] = [];
-
-        for (const categoryDoc of catalogQuerySnapshot.docs) {
-          const productsCollectionRef = collection(categoryDoc.ref, "products");
-          const productsQuerySnapshot = await getDocs(productsCollectionRef);
-
-          productsQuerySnapshot.forEach((productDoc) => {
-            const data = productDoc.data() as CatalogItem;
-
-            allCatalogData.push(data);
-          });
-          this.catalogData = allCatalogData;
-        }
+        this.catalogData = catalogData;
       } catch (error) {
         console.error("Error fetching user data:", error.message);
       }
-      // const catalogCollectionRef = collection(db, "catagory");
-
-      // try {
-      //   const catalogQuerySnapshot = await getDocs(catalogCollectionRef);
-
-      //   const catalogData: CatalogItem[] = [];
-      //   catalogQuerySnapshot.forEach((doc) => {
-      //     const data = doc.data() as CatalogItem;
-      //     catalogData.push(data);
-      //   });
-
-      //   this.catalogData = catalogData;
-      // } catch (error) {
-      //   console.error("Error fetching user data:", error.message);
-      // }
 
       try {
         const usersCollectionRef = collection(db, "users");
@@ -131,9 +108,6 @@ export default {
       } catch (error) {
         console.error("Error fetching user data:", error.message);
       }
-    },
-    goToAdminPage() {
-      this.$router.push("/category/homeAdmin");
     },
   },
   mounted() {

@@ -1,4 +1,4 @@
-import { getFirestore, getDoc } from '../node_modules/firebase/firestore';
+// import { getFirestore, getDoc } from '../node_modules/firebase/firestore';
 
 const stripe = Stripe("pk_test_51OPNLwFJUwe1va09pikfEhMZZw3SrXulpaqGMXQbeT9kTm2MB6nbWKNWPNcTe3OJ1fJHw5a0d3H6TzA73NS3Ykjk003g6rTcC7");
 

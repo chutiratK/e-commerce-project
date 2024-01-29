@@ -5,7 +5,7 @@
       <div>
         <div class="row">
           <div class="text-center">
-            <h2>Edit Product</h2>
+            <h2>Add Product</h2>
           </div>
         </div>
         <br />
@@ -16,8 +16,8 @@
           <div class="col-8">
             <form>
               <div class="selectCategory">
-                <div>Selected Category: {{ this.category }}</div>
-                <select v-model="category">
+                <div>Selected Category: {{ selectCategory }}</div>
+                <select v-model="selectCategory">
                   <option disabled value="">Please select one</option>
                   <option
                     v-for="(category, index) in this.categoryProductIds"
@@ -27,6 +27,9 @@
                   </option>
                 </select>
               </div>
+              <span v-if="errorMessageName" class="error-message">
+                please fill this field
+              </span>
 
               <div class="form-group">
                 <label>Product Name</label>
@@ -36,7 +39,11 @@
                   v-model="productName"
                   required
                 />
+                <span v-if="errorMessageName" class="error-message"
+                  >please fill this field</span
+                >
               </div>
+
               <div class="form-group">
                 <label>Product Description</label>
                 <textarea
@@ -45,6 +52,7 @@
                   v-model="description"
                 ></textarea>
               </div>
+
               <div class="form-group">
                 <label>Product Image</label>
                 <!-- <input type="text" class="form-control" v-model="imageUrl" required/> -->
@@ -64,7 +72,11 @@
                   <span v-else>Drag & Drop or Click to Upload</span>
                   <span v-if="imageUrl" @click="removeImage">&times;</span>
                 </div>
+                <span v-if="errorMessageImage" class="error-message"
+                  >please fill this field</span
+                >
               </div>
+
               <div class="form-group">
                 <label>Price</label>
                 <input
@@ -73,7 +85,11 @@
                   v-model="price"
                   required
                 />
+                <span v-if="errorMessagePrice" class="error-message"
+                  >please fill this field</span
+                >
               </div>
+
               <label>Tags</label>
               <div class="tag-input">
                 <div v-for="(tag, index) in tags" :key="tag" class="tag">
@@ -84,28 +100,28 @@
                   type="text"
                   placeholder="Enter new tag"
                   class="tag-text"
-                  @keydown="updateTag"
+                  @keydown="addTag"
                   @keydown.delete="removeLastTag"
                 />
               </div>
               <br />
-              <v-btn class="submit-btn" type="button" @click="editCategory"
-                >Edit</v-btn
+              <v-btn class="submit-btn" type="button" @click="addProduct"
+                >Submit</v-btn
               >
               <v-btn class="red" @click="backHome">back</v-btn>
             </form>
           </div>
         </div>
       </div>
-      <v-dialog v-model="editSuccess" max-width="400px">
+      <v-dialog v-model="addSuccess" max-width="400px">
         <v-card class="popUp" style="background-color: white; color: #5b5353">
           <center>
             <img
-              src="../../../assets/images/check.webp"
+              src="../../assets/images/check.webp"
               width="200px"
               height="200px"
             />
-            <h3>Edit successfully!</h3>
+            <h3>added successfully!</h3>
             <v-btn class="success" @click="Success">ok</v-btn>
           </center>
         </v-card>
@@ -115,139 +131,169 @@
 </template>
 
 <script lang="ts">
-import NavBar from "../../../components/NavBar.vue";
-import SignIn from "../../../components/SignIn.vue";
 import {
   getFirestore,
+  collection,
+  addDoc,
   setDoc,
   doc,
-  updateDoc,
   getDoc,
-  collection,
   getDocs,
 } from "firebase/firestore";
-import {
-  getStorage,
-  ref,
-  uploadBytes,
-  getDownloadURL,
-  deleteObject,
-} from "firebase/storage";
-
+import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
+interface CatalogItem {
+  productID: string;
+  category: string;
+  productName: string;
+  description: string;
+  price: number;
+  imageUrl: string;
+  tags: Array<string>;
+}
 export default {
-  name: "editCategory",
-  components: { NavBar, SignIn },
+  name: "addProduct",
+  components: {},
   data: () => ({
     productName: "",
     description: "",
     imageUrl: "",
     price: "",
-    productID: "",
-    tags: "",
-    category: "",
-    categoryChoice: "",
-    editSuccess: false,
     uploadedImage: null,
+    addSuccess: false,
+    errorMessageName: false,
+    errorMessageImage: false,
+    errorMessagePrice: false,
+    tags: [],
+    selectCategory: "",
+    selectedCategory: "",
+    categoryProductIds: [],
+    catalogData: [] as CatalogItem[],
   }),
-  created() {
-    this.category = this.$route.query.category;
-    this.productID = this.$route.query.productID;
-  },
   async mounted() {
-    this.fetchExistingData(this.productID, this.category);
     await this.fetchCategory();
   },
   methods: {
     openFileDialog() {
       this.$refs.fileInput.click();
     },
-    handleDrop(event: any) {
-      event.preventDefault();
-
-      const files = event.dataTransfer.files;
-      if (files.length > 0) {
-        this.handleImage(files[0]);
-      }
-    },
-
-    handleFileInput() {
-      const files = this.$refs.fileInput.files;
-      if (files.length > 0) {
-        this.handleImage(files[0]);
-      }
-    },
-
-    handleImage(file: any) {
-      if (file) {
-        this.uploadedImage = file;
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          this.imageUrl = e.target.result;
-        };
-        reader.readAsDataURL(file);
-      }
-    },
-
     removeImage() {
       this.imageUrl = "";
       this.uploadedImage = null;
     },
-    async fetchExistingData(productID: string, category: string) {
-      const db = getFirestore();
-      const productDocRef = doc(
-        db,
-        "category",
-        category,
-        "products",
-        productID
-      );
-
-      try {
-        const productDocSnapshot = await getDoc(productDocRef);
-
-        if (productDocSnapshot.exists()) {
-          const productData = productDocSnapshot.data();
-          this.productName = productData.productName;
-          this.category = productData.category;
-          this.description = productData.description;
-          this.imageUrl = productData.imageUrl;
-          this.price = productData.price;
-          this.tags = productData.tags;
-        } else {
-          console.error("Product not found.");
+    async uploadImage() {
+      if (this.uploadedImage) {
+        const storageRef = ref(
+          getStorage(),
+          "images/" + this.uploadedImage.name
+        );
+        try {
+          const uploadTask = await uploadBytes(storageRef, this.uploadedImage);
+          this.imageUrl = await getDownloadURL(uploadTask.ref);
+          console.log("Image uploaded successfully");
+        } catch (error) {
+          console.error("Error uploading image:", error);
+          // Handle the error, such as showing a user-friendly message
         }
-      } catch (error) {
-        console.error("Error fetching product data:", error.message);
       }
     },
-    async editCategory() {
-      const db = getFirestore();
-      const docRef = doc(
-        db,
-        "category",
-        this.category,
-        "products",
-        this.productID
-      );
-      const productData = {
-        productName: this.productName,
-        category: this.category,
-        description: this.description,
-        imageUrl: this.imageUrl,
-        price: this.price,
-        productID: this.productID,
-        tags: this.tags,
-      };
+    async handleFileInput(event: any) {
+      const files = event.target.files;
+      if (files.length > 0) {
+        if (this.uploadedImage) {
+          alert("Only one image can be uploaded.");
+          return;
+        }
+        const image = files[0];
+        try {
+          const storageRef = ref(getStorage(), "images/" + image.name);
+          const uploadTask = await uploadBytes(storageRef, image);
+          const imageUrl = await getDownloadURL(uploadTask.ref);
+          this.imageUrl = imageUrl;
+          this.uploadedImage = image;
+          console.log("upload success");
+        } catch (error) {
+          console.error("Error uploading image:", error);
+        }
+      }
+    },
+    async handleDrop(event: any) {
+      const files = event.dataTransfer.files;
+      if (files.length > 0) {
+        if (this.uploadedImage) {
+          alert("Only one image can be uploaded.");
+          return;
+        }
+        const image = files[0];
+        try {
+          const storageRef = ref(getStorage(), "images/" + image.name);
+          const uploadTask = await uploadBytes(storageRef, image);
+          const imageUrl = await getDownloadURL(uploadTask.ref);
+          this.imageUrl = imageUrl;
+          this.uploadedImage = image;
+          console.log("upload success");
+        } catch (error) {
+          console.error("Error uploading image:", error);
+        }
+      }
+    },
+    async addProduct() {
+      await this.uploadImage();
+      if (this.productName && this.imageUrl && this.price) {
+        const db = getFirestore();
 
-      try {
-        await updateDoc(docRef, productData);
-        console.log("Category edited successfully!");
-        this.editSuccess = true;
-      } catch (error) {
-        console.error("Error editing category: ", error);
+        const productData = {
+          productID: "",
+          category: "",
+          productName: this.productName,
+          description: this.description,
+          imageUrl: this.imageUrl,
+          price: this.price,
+          tags: this.tags,
+        };
+        try {
+          this.selectedCategory = this.selectCategory.toLowerCase();
+          console.log("check:", this.selectedCategory);
+          // const docRef = await addDoc(collection(db, "category"), productData);
+          const categoryRef = doc(db, "category", this.selectedCategory);
+          const categorySnapshot = await getDoc(categoryRef);
+          if (!categorySnapshot.exists()) {
+            await setDoc(categoryRef, {});
+          }
+
+          const productRef = await addDoc(
+            collection(categoryRef, "products"),
+            productData
+          );
+          console.log("Category added successfully with ID: ", productRef.id);
+          productData.productID = productRef.id;
+          productData.category = this.selectedCategory;
+          await setDoc(
+            doc(
+              db,
+              "category",
+              this.selectedCategory,
+              "products",
+              productRef.id
+            ),
+            productData
+          );
+          this.addSuccess = true;
+        } catch (error) {
+          console.error("Error adding category: ", error);
+        }
+      } else {
+        if (!this.productName) {
+          this.errorMessageName = true;
+        }
+        if (!this.imageUrl) {
+          this.errorMessageImage = true;
+        }
+        if (!this.price) {
+          this.errorMessagePrice = true;
+        }
       }
     },
-    updateTag(event) {
+    addTag(event) {
       if (event.code == "Comma" || event.code == "Enter") {
         event.preventDefault();
         var val = event.target.value.trim();
@@ -257,6 +303,20 @@ export default {
           event.target.value = "";
         }
       }
+    },
+    removeTag(index) {
+      this.tags.splice(index, 1);
+    },
+    removeLastTag(event) {
+      if (event.target.value.length === 0) {
+        this.removeTag(this.tags.length - 1);
+      }
+    },
+    Success() {
+      this.$router.push("/category/homeAdmin");
+    },
+    backHome() {
+      this.$router.push("/category/homeAdmin");
     },
     async fetchCategory() {
       const db = getFirestore();
@@ -272,20 +332,6 @@ export default {
       } catch (error) {
         console.error("Error fetching user data:", error.message);
       }
-    },
-    removeTag(index) {
-      this.tags.splice(index, 1);
-    },
-    removeLastTag(event) {
-      if (event.target.value.length === 0) {
-        this.removeTag(this.tags.length - 1);
-      }
-    },
-    Success() {
-      this.$router.push("/");
-    },
-    backHome() {
-      this.$router.push("/category/homeAdmin");
     },
   },
 };
@@ -327,9 +373,8 @@ export default {
 .popUp img {
   margin-top: 50px;
 }
-.preview-image {
-  width: 100px;
-  height: 100px;
+.error-message {
+  color: red;
 }
 .form-group .drop-zone {
   border: 2px dashed #ccc;
@@ -342,6 +387,10 @@ export default {
 }
 .form-group .drop-zone:active {
   background-color: #e0e0e0;
+}
+.preview-image {
+  width: 100px;
+  height: 100px;
 }
 .drop-zone {
   border-radius: 7px;
