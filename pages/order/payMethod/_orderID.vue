@@ -1,38 +1,59 @@
 <template>
-  <v-app style="background-color: rgb(236, 236, 236);">
+  <v-app style="background-color: rgb(236, 236, 236)">
     <NavBar />
     <Nuxt />
     <div class="paymethod-container">
-      
       <div v-if="currentUser">
         <v-row>
-          <v-col v-for="(paymentMethod, index) in paymentMethods" :key="index" cols="12" md="4">
-            <v-card @click="selectPaymentMethod(paymentMethod)" style="background-color: rgb(255, 255, 255); ">
+          <v-col
+            v-for="(paymentMethod, index) in paymentMethods"
+            :key="index"
+            cols="12"
+            md="4"
+          >
+            <v-card
+              @click="selectPaymentMethod(paymentMethod)"
+              style="background-color: rgb(255, 255, 255)"
+            >
               <div class="pay-content">
                 <div class="pay-title-row">
-                  <v-card-title class="titlePay">{{ paymentMethod.name }}</v-card-title>
-                  <v-card-subtitle class="subPay">{{ paymentMethod.description }}</v-card-subtitle>
+                  <v-card-title class="titlePay">{{
+                    paymentMethod.name
+                  }}</v-card-title>
+                  <v-card-subtitle class="subPay">{{
+                    paymentMethod.description
+                  }}</v-card-subtitle>
                 </div>
                 <div class="pay-img-row">
-                  <img :src="paymentMethod.image" alt="Payment Method">
+                  <img :src="paymentMethod.image" alt="Payment Method" />
                 </div>
               </div>
             </v-card>
           </v-col>
         </v-row>
-        <br>
-        <div v-if="selectedPaymentMethod && selectedPaymentMethod.name === 'Credit Card'" class="creditCard" style="background-color: white; color: #525252;">
+        <br />
+        <div
+          v-if="
+            selectedPaymentMethod &&
+            selectedPaymentMethod.name === 'Credit Card'
+          "
+          class="creditCard"
+          style="background-color: white; color: #525252"
+        >
           <div class="creditCardContainer">
             <div class="creditCardTitle">{{ selectedPaymentMethod.name }}</div>
-            <div class="creditCardSubtitle">{{ selectedPaymentMethod.description }}</div>
-            <hr><br> 
+            <div class="creditCardSubtitle">
+              {{ selectedPaymentMethod.description }}
+            </div>
+            <hr />
+            <br />
             <div>
               <stripe-element-card
                 ref="elementRef"
                 :pk="publishableKey"
                 @token="tokenCreated"
               />
-              <br>
+              <br />
               <button class="payBtn" id="submit" @click="submit">
                 <div class="spinner hidden" id="spinner"></div>
                 <span id="button-text">{{ this.totalAmount }} bath</span>
@@ -40,22 +61,37 @@
             </div>
           </div>
         </div>
-        
-        <div v-if="selectedPaymentMethod && selectedPaymentMethod.name === 'PayPal'" class="creditCard" style="background-color: white; color: #525252;">
+
+        <div
+          v-if="
+            selectedPaymentMethod && selectedPaymentMethod.name === 'PayPal'
+          "
+          class="creditCard"
+          style="background-color: white; color: #525252"
+        >
           <div class="creditCardContainer">
             <div class="creditCardTitle">{{ selectedPaymentMethod.name }}</div>
-            <div class="creditCardSubtitle">{{ selectedPaymentMethod.description }}</div>
-            <hr>
-            
+            <div class="creditCardSubtitle">
+              {{ selectedPaymentMethod.description }}
+            </div>
+            <hr />
           </div>
         </div>
 
-        <div v-if="selectedPaymentMethod && selectedPaymentMethod.name === 'Bank Transfer'" class="creditCard" style="background-color: white; color: #525252;">
+        <div
+          v-if="
+            selectedPaymentMethod &&
+            selectedPaymentMethod.name === 'Bank Transfer'
+          "
+          class="creditCard"
+          style="background-color: white; color: #525252"
+        >
           <div class="creditCardContainer">
             <div class="creditCardTitle">{{ selectedPaymentMethod.name }}</div>
-            <div class="creditCardSubtitle">{{ selectedPaymentMethod.description }}</div>
-            <hr>
-            
+            <div class="creditCardSubtitle">
+              {{ selectedPaymentMethod.description }}
+            </div>
+            <hr />
           </div>
         </div>
       </div>
@@ -64,103 +100,136 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
-import { loadStripe } from '@stripe/stripe-js';
-import { StripeElementCard } from '@vue-stripe/vue-stripe';
-import { getFirestore, getDoc, onSnapshot, doc} from 'firebase/firestore';
+import Vue from "vue";
+import { loadStripe } from "@stripe/stripe-js";
+import axios from "axios";
+import { StripeElementCard, StripeCheckout } from "@vue-stripe/vue-stripe";
+import { getFirestore, updateDoc, onSnapshot, doc } from "firebase/firestore";
 
 export default Vue.extend({
-  name: 'PaymentMethod',
-  components: { StripeElementCard, },
-  computed: { 
-      currentUser() {
-          return this.$store.state.user
-      },
+  name: "PaymentMethod",
+  components: { StripeElementCard, StripeCheckout },
+  computed: {
+    currentUser() {
+      return this.$store.state.user;
     },
+  },
   data: () => ({
     paymentMethods: [
-    {
-        name: 'Credit Card',
-        description: 'Pay with your credit card',
-        image: 'https://www.datavisor.com/wp-content/uploads/2022/04/MasterCard-1.png',
-    },
-    {
-        name: 'PayPal',
-        description: 'Pay with PayPal',
-        image: 'https://th.bing.com/th/id/R.c01292cdd7f51d3520c75031fc479c2b?rik=0qZxmR9AXGhBdw&pid=ImgRaw&r=0',
-    },
-    {
-        name: 'Bank Transfer',
-        description: 'Transfer money from your bank account',
-        image: 'https://cdn1.iconfinder.com/data/icons/business-and-finance-20/200/vector_65_09-512.png',
-    },
+      {
+        name: "Credit Card",
+        description: "Pay with your credit card",
+        image:
+          "https://www.datavisor.com/wp-content/uploads/2022/04/MasterCard-1.png",
+      },
+      {
+        name: "PayPal",
+        description: "Pay with PayPal",
+        image:
+          "https://th.bing.com/th/id/R.c01292cdd7f51d3520c75031fc479c2b?rik=0qZxmR9AXGhBdw&pid=ImgRaw&r=0",
+      },
+      {
+        name: "Bank Transfer",
+        description: "Transfer money from your bank account",
+        image:
+          "https://cdn1.iconfinder.com/data/icons/business-and-finance-20/200/vector_65_09-512.png",
+      },
     ],
     selectedPaymentMethod: false,
     loading: false,
     message: "",
-    orderId: '',
-    totalAmount: '',
+    orderId: "",
+    totalAmount: "",
     paymentElement: null,
-    publishableKey: 'pk_test_51OPNLwFJUwe1va09pikfEhMZZw3SrXulpaqGMXQbeT9kTm2MB6nbWKNWPNcTe3OJ1fJHw5a0d3H6TzA73NS3Ykjk003g6rTcC7',
+    publishableKey:
+      "pk_test_51OPNLwFJUwe1va09pikfEhMZZw3SrXulpaqGMXQbeT9kTm2MB6nbWKNWPNcTe3OJ1fJHw5a0d3H6TzA73NS3Ykjk003g6rTcC7",
     token: null,
+    confirmParams: {
+      return_url: "http://localhost:3000",
+    },
   }),
   methods: {
     selectPaymentMethod(paymentMethod: any) {
       this.selectedPaymentMethod = paymentMethod;
     },
-    submit () {
-      this.$refs.elementRef.submit();
-    },
-    handlePaymentSuccess(token) {
-      console.log('token id: ', token)
-    },
 
-    // formatCardNumber() {
-    //   this.cardNumber = this.cardNumber.replace(/\D/g, '').replace(/(.{4})/g, '$1 ').trim();
-    // },
-    // formatExpiryDate() {
-    //   this.expiryDate = this.expiryDate.replace(/\D/g, '').replace(/^(.{2})/, '$1/').substring(0, 5);
-    // },
-    // formatCvc() {
-    //   this.cvc = this.cvc.replace(/\D/g, '').substring(0, 3);
-    // },
-      
+    async submit() {
+      try {
+        this.$refs.elementRef.submit();
+      } catch (error) {
+        console.error(error);
+      }
+    },
+    async tokenCreated(token: any) {
+      const db = getFirestore();
+      console.log("token: ", token);
+      try {
+        const result = await axios.post(
+          "http://localhost:3001/create-payment-intent",
+          {
+            amount: this.totalAmount,
+            payment: {
+              id: token.id,
+            },
+          }
+        );
+        const orderRef = doc(
+          db,
+          "order",
+          this.currentUser.uid,
+          "orderUser",
+          this.orderId
+        );
+        await updateDoc(orderRef, {
+          paymentSuccess: true,
+        });
+
+        this.$router.push("/order/paySuccess");
+        console.log("Payment was successful!");
+      } catch (error) {
+        console.error("Error processing payment client:", error);
+      }
+    },
   },
 
   async mounted() {
+    // console.log("qqq", process.env.STRIPE_PUBLISHABLE_KEY);
     try {
       const orderID = this.$route.params.orderID;
       this.orderId = orderID;
-      console.log('OrderID detail page:', orderID);
+      console.log("OrderID detail page:", orderID);
 
       const db = getFirestore();
-      const orderRef = doc(db, 'order', this.currentUser.uid, 'orderUser', orderID);
-      // const orderDoc = await getDoc(orderRef);
+      const orderRef = doc(
+        db,
+        "order",
+        this.currentUser.uid,
+        "orderUser",
+        orderID
+      );
 
       onSnapshot(orderRef, (orderDoc) => {
         if (orderDoc.exists()) {
-            const orderData = orderDoc.data();
-            this.totalAmount = orderData.totalAmount;
-            console.log('orderData:', this.totalAmount);
+          const orderData = orderDoc.data();
+          this.totalAmount = orderData.totalAmount;
+          console.log("orderData:", this.totalAmount);
         } else {
-            console.error('Order not found.');
+          console.error("Order not found.");
         }
       });
-      const stripe = await loadStripe('pk_test_51OPNLwFJUwe1va09pikfEhMZZw3SrXulpaqGMXQbeT9kTm2MB6nbWKNWPNcTe3OJ1fJHw5a0d3H6TzA73NS3Ykjk003g6rTcC7');
     } catch (error) {
-      console.error('Error :', error);
+      console.error("Error :", error);
     }
-  }
-
+  },
 });
 </script>
 
 <style>
-.paymethod-container .titlePay{
-    color: rgb(56, 56, 56) !important;
+.paymethod-container .titlePay {
+  color: rgb(56, 56, 56) !important;
 }
-.paymethod-container .subPay{
-    color: rgb(56, 56, 56) !important;
+.paymethod-container .subPay {
+  color: rgb(56, 56, 56) !important;
 }
 .creditCardTitle {
   font-size: 25px;
@@ -180,18 +249,18 @@ export default Vue.extend({
   border-radius: 8px;
 }
 .creditCard .payForm {
-    color: rgb(56, 56, 56) !important;
+  color: rgb(56, 56, 56) !important;
 }
 .input-label {
-    font-size: 12px;
-    margin-bottom: 4px; 
-    display: block; 
+  font-size: 12px;
+  margin-bottom: 4px;
+  display: block;
 }
-.payForm input{
-    border: 1px solid #ccc; 
-    padding: 8px; 
-    border-radius: 4px;
-    margin-right: 10px;
+.payForm input {
+  border: 1px solid #ccc;
+  padding: 8px;
+  border-radius: 4px;
+  margin-right: 10px;
 }
 /* .payForm{
   margin-left: 110px;
@@ -206,11 +275,11 @@ export default Vue.extend({
   width: 100px;
 } */
 .card-icon {
-    width: 100px;
-    height: 100px;
-    position: absolute;
-    top: 195px;
-    right: 530px;
+  width: 100px;
+  height: 100px;
+  position: absolute;
+  top: 195px;
+  right: 530px;
 }
 /* .input-row {
   display: flex;
@@ -254,7 +323,7 @@ hr {
   margin-bottom: 24px;
 }
 
-.payBtn{
+.payBtn {
   background: #5469d4;
   font-family: Arial, sans-serif;
   color: #ffffff;

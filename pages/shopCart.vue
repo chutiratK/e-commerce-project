@@ -4,7 +4,7 @@
     <Nuxt />
     <div class="shopCart-container">
       <div class="card mb-3 content">
-        <h2 class="m-3 pt-3">Shopping Cart</h2>
+        <h2 class="m-3 pt-3">Shopping Cart {{ this.cartItemCount }}</h2>
         <hr />
         <div class="card-body">
           <div v-if="cart.length === 0">
@@ -128,6 +128,7 @@ import {
 } from "firebase/firestore";
 interface Cart {
   productID: string;
+  category: string;
   productName: string;
   description: string;
   price: number;
@@ -144,25 +145,8 @@ export default {
     delSuccess: false,
     cart: [] as Cart[],
     selectAll: false,
+    cartItemCount: 0,
   }),
-  // data() {
-  //     return{
-  //         publishableKey:'pk_test_51OPNLwFJUwe1va09pikfEhMZZw3SrXulpaqGMXQbeT9kTm2MB6nbWKNWPNcTe3OJ1fJHw5a0d3H6TzA73NS3Ykjk003g6rTcC7',
-  //         successURL:'http://localhost:3000/',
-  //         cancelURL:'http://localhost:3000/',
-  //         loading: false,
-  //         lineItems: [
-  //             {
-  //             price: 'price_1OTUWgFJUwe1va09zOKo0zLi',
-  //             quantity: 1,
-  //             },
-  //         ],
-  //         delConfirmForm: false,
-  //         delSuccess: false,
-  //         cart: [] as Cart[],
-  //         selectAll: false,
-  //     }
-  // },
   computed: {
     currentUser() {
       return this.$store.state.user;
@@ -200,6 +184,14 @@ export default {
         });
       } catch (error) {
         console.error("Error fetching user data:", error.message);
+      }
+      try {
+        onSnapshot(userCartRef, (snapshot) => {
+          this.cartItemCount = snapshot.size.toString();
+          console.log("cart: ", this.cartItemCount);
+        });
+      } catch (error) {
+        console.error("Error fetching cart user data:", error.message);
       }
     },
     async deleteCart(productID: string) {

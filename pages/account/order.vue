@@ -20,11 +20,11 @@
                       <p>Order ID: {{ order.orderID }}</p>
                       <p
                         :class="{
-                          'text-danger': !order.payment,
-                          'text-success': order.payment,
+                          'text-danger': !order.paymentSuccess,
+                          'text-success': order.paymentSuccess,
                         }"
                       >
-                        {{ order.payment ? "ชำระสำเร็จ" : "รอชำระ" }}
+                        {{ order.paymentSuccess ? "ชำระสำเร็จ" : "รอชำระ" }}
                       </p>
                     </div>
                     <div class="button-container">
@@ -61,6 +61,7 @@ interface Order {
   price: number;
   imageUrl: string;
   quantity: number;
+  paymentSuccess: boolean;
 }
 
 export default Vue.extend({

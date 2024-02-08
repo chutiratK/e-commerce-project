@@ -30,7 +30,7 @@
                     width="50px"
                     height="50px"
                   />
-                  <p>{{ product.categoryName }}</p>
+                  <p>{{ product.productName }}</p>
                   <p id="price">฿{{ product.price }}</p>
                   <p>{{ product.quantity }}</p>
                 </div>
@@ -85,11 +85,13 @@ import {
   doc,
   setDoc,
   addDoc,
+  deleteDoc,
 } from "firebase/firestore";
 
 interface Cart {
-  productId: string;
-  categoryName: string;
+  productID: string;
+  category: string;
+  productName: string;
   imageUrl: string;
   quantity: number;
   price: number;
@@ -114,6 +116,7 @@ export default Vue.extend({
     alertDescription: "",
     alertType: "success",
   }),
+
   computed: {
     currentUser() {
       return this.$store.state.user;
@@ -234,13 +237,14 @@ export default Vue.extend({
           address: selectedAddress,
           orderDetails: selectedCartItems.map((product) => ({
             productId: product.productID,
-            categoryName: product.categoryName,
+            category: product.category,
+            productName: product.productName,
             imageUrl: product.imageUrl,
             quantity: product.quantity,
             price: product.price,
           })),
           totalAmount: this.selectedTotalAmount,
-          payment: false,
+          paymentSuccess: false,
         };
         const userOrderDocRef = await addDoc(userOrderRef, {});
 
@@ -252,16 +256,23 @@ export default Vue.extend({
           "orderUser",
           userOrderDocRef.id
         );
-        console.log("noy", userOrderDocRefWithData);
         await setDoc(userOrderDocRefWithData, orderUser);
+
+        selectedCartItems.forEach(async (product) => {
+          const cartItemRef = doc(
+            db,
+            "cart",
+            this.currentUser.uid,
+            "cartUser",
+            product.productID
+          );
+          await deleteDoc(cartItemRef); // Delete the cart item from Firestore
+        });
 
         this.$router.push("/order/payMethod/" + orderUser.orderID);
         console.log("Order details:", orderUser);
       } else {
-        // this.$notify.error({
-        //   title: "ข้อผิดพลาด",
-        //   message: "กรุณากรอกที่อยู่ก่อนทำการสั่งซื้อ",
-        // });
+        alert("กรุณากรอกที่อยู่ก่อนทำการสั่งซื้อ");
       }
     },
     changeAddr() {

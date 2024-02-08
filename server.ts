@@ -1,147 +1,77 @@
-// const express = require('express');
-// const bodyParser = require('body-parser');
-// const stripe = require('stripe')('sk_test_51OPNLwFJUwe1va09f52NR33CExT8eu4n6l7AFS4iWWC8GtgpJNYD7ehhnIW5wPSKMRCRezzgDJsceeZK2mldW6CE00eiP3nHrq');
-
-// const app = express();
-// app.use(bodyParser.json());
-
-// app.post('/charge', async (req, res) => {
-//     const token = req.body.token;
-//     const amount = 10;
-
-//     try {
-//         const charge = await stripe.charges.create({
-//             amount,
-//             currency: 'thb',
-//             source: token,
-//         });
-
-//         // ทำสิ่งที่คุณต้องการหลังจากการชำระเงินเสร็จสมบูรณ์
-//         console.log(charge);
-//         res.status(200).send('Payment successful');
-//     } catch (error) {
-//         console.error(error);
-//         res.status(500).send('Payment failed');
-//     }
-// });
-
-// app.listen(3000, () => {
-//     console.log('Server is running on port 3000');
-// });
-
-
-
-const Stripe = require("Stripe");
 const express = require("express");
-const stripe = new Stripe('sk_test_51OPNLwFJUwe1va09f52NR33CExT8eu4n6l7AFS4iWWC8GtgpJNYD7ehhnIW5wPSKMRCRezzgDJsceeZK2mldW6CE00eiP3nHrq');
+const cors = require("cors");
+const bodyParser = require("body-parser");
+const stripe = require("stripe")(
+  "sk_test_51OPNLwFJUwe1va09f52NR33CExT8eu4n6l7AFS4iWWC8GtgpJNYD7ehhnIW5wPSKMRCRezzgDJsceeZK2mldW6CE00eiP3nHrq"
+);
 
 const app = express();
 
-app.use(express.static("/public"));
+app.use(cors());
 app.use(express.json());
 
-// const calculateOrderAmount = (items) => {
-//   return 24 * 100;
-// };
-
 app.post("/create-payment-intent", async (req, res) => {
-  const { items, totalAmount  } = req.body;
-  
-  // Create a PaymentIntent with the order amount and currency
-  const paymentIntent = await stripe.paymentIntents.create({
-    amount: totalAmount * 100,
-    currency: "thb",
-    automatic_payment_methods: {
-      enabled: true,
-    },
-  });
-
-  res.send({
-    clientSecret: paymentIntent.client_secret,
-  });
+  try {
+    const { amount, payment } = req.body;
+    if (isNaN(amount)) {
+      res.status(400).json({ error: "Invalid amount provided" });
+      return;
+    }
+    const paymentIntent = await stripe.paymentIntents.create({
+      amount: amount * 100,
+      currency: "thb",
+      payment_method_types: ["card"],
+      payment_method_data: {
+        type: "card",
+        card: {
+          token: payment.id,
+        },
+      },
+      confirmation_method: "manual",
+      confirm: true,
+      // return_url: "http://localhost:3000",
+    });
+    res.status(200).send({
+      clientSecret: paymentIntent.client_secret,
+      success: true,
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
 });
+const endpointSecret = "whsec_8Gd8RTuxXEKfiaZ96Ec3bZPl1uJ12VGV";
 
-app.listen(4242, () => console.log("Node server listening on port 4242!"));
+app.post(
+  "/webhook",
+  bodyParser.raw({ type: "application/json" }),
+  (req, res) => {
+    const sig = req.headers["stripe-signature"];
 
+    let event;
 
-// const stripe = require('stripe')('sk_test_51OPNLwFJUwe1va09f52NR33CExT8eu4n6l7AFS4iWWC8GtgpJNYD7ehhnIW5wPSKMRCRezzgDJsceeZK2mldW6CE00eiP3nHrq');
-// const express = require('express');
-// const app = express();
-// app.use(express.static('public'));
+    try {
+      event = stripe.webhooks.constructEvent(req.body, sig, endpointSecret);
+    } catch (err) {
+      console.error("Webhook Error:", err.message);
+      return res.status(400).send(`Webhook Error: ${err.message}`);
+    }
 
-// const YOUR_DOMAIN = 'http://localhost:3001';
+    // Handle the event
+    if (event.type === "payment_intent.succeeded") {
+      const paymentIntent = event.data.object;
+      console.log("PaymentIntent was successful!");
+      // res.redirect("http://localhost:3000/success");
+    } else if (event.type === "payment_intent.payment_failed") {
+      const paymentIntent = event.data.object;
+      console.error("PaymentIntent failed:", paymentIntent.last_payment_error);
+      // Handle payment failure
+    }
 
-// app.post('/create-checkout-session', async (req, res) => {
-//     const { userID, orderID, totalAmount } = req.body;
-//     const session = await stripe.checkout.sessions.create({
-//         line_items: [
-//         {
-//             price: 'price_1OUwbYFJUwe1va094z3E6lVZ',
-//             quantity: 1,
-//         },
-//         ],
-//         mode: 'payment',
-//         success_url: `${YOUR_DOMAIN}`,
-//         cancel_url: `${YOUR_DOMAIN}`,
-//     });
+    res.status(200).json({ received: true });
+  }
+);
+const PORT = 3001;
 
-//     res.redirect(303, session.url);
-// });
-
-// app.listen(3001, () => console.log('Running on port 3001'));
-
-
-// import express, { Request, Response } from 'express';
-// import { Stripe } from 'stripe';
-
-// const cors = require('cors');
-// require('dotenv').config()
-
-// const endpointSecret = "whsec_d93b4772f760517579b522be64b74046af6bbf76f6ce151e7e841c4ee93b27e4";
-// const stripeSecretKey = 'sk_test_51OPNLwFJUwe1va09f52NR33CExT8eu4n6l7AFS4iWWC8GtgpJNYD7ehhnIW5wPSKMRCRezzgDJsceeZK2mldW6CE00eiP3nHrq';
-// const stripe = new Stripe(stripeSecretKey, {
-//   apiVersion: '2023-10-16',
-// });
-
-// const app = express();
-// app.use(express.static('public'));
-// app.use(cors());
-// const corsOptions = {
-//     origin: 'http://localhost:3000',
-//     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
-//     credentials: true,
-//     optionsSuccessStatus: 204,
-//   };
-// app.use(cors(corsOptions));
-// const YOUR_DOMAIN = 'http://localhost:3000';
-
-// app.post('/create-checkout-session', async (req: Request, res: Response) => {
-//   try {
-//     const session = await stripe.checkout.sessions.create({
-//         payment_method_types: ['card'],
-//         line_items: [
-//             {
-//             price_data: {
-//                 currency: 'thb',
-//                 // product_data: {
-//                 //     name: product.name,
-//                 // },
-//                 // unit_amount: CSSMathProduct.price * 100,
-//             },
-//             quantity: 1,
-//         },
-//       ],
-//       mode: 'payment',
-//       success_url: `${YOUR_DOMAIN}`,
-//       cancel_url: `${YOUR_DOMAIN}`,
-//     });
-//     console.log('Created checkout session:', session);
-//     res.redirect(303, session.url as string);
-
-//   } catch (error) {
-//     console.error('Error creating checkout session:', error); 
-//     res.status(500).send('Internal Server Error');
-//   }
-// });
-
-// app.listen(3000, () => console.log('Running on port 3000'));
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});

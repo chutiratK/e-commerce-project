@@ -100,21 +100,6 @@ export default {
       } catch (error) {
         console.error("Error fetching user data:", error.message);
       }
-      // const catalogCollectionRef = collection(db, "catagory");
-
-      // try {
-      //   const catalogQuerySnapshot = await getDocs(catalogCollectionRef);
-
-      //   const catalogData: CatalogItem[] = [];
-      //   catalogQuerySnapshot.forEach((doc) => {
-      //     const data = doc.data() as CatalogItem;
-      //     catalogData.push(data);
-      //   });
-
-      //   this.catalogData = catalogData;
-      // } catch (error) {
-      //   console.error("Error fetching user data:", error.message);
-      // }
 
       try {
         const usersCollectionRef = collection(db, "users");

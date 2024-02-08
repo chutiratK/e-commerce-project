@@ -34,7 +34,9 @@
               height="50px"
             />
           </v-col>
-          <v-col>{{ product.productName }}</v-col>
+          <v-col @click="productDetail(product.productID, product.category)">
+            {{ product.productName }}
+          </v-col>
           <v-col>{{ product.category }}</v-col>
           <v-col>{{ product.price }} Bath</v-col>
           <v-col class="button-column">
@@ -42,11 +44,6 @@
               class="editBtn"
               @click="editProduct(product.productID, product.category)"
               >EDIT</v-btn
-            >
-            <v-btn
-              class="detailBtn"
-              @click="productDetail(product.productID, product.category)"
-              >DETAIL</v-btn
             >
             <v-btn
               class="red"
@@ -58,9 +55,21 @@
       </v-card>
       <br />
       <div class="pagination">
-        <p @click="previousPage" :disabled="currentPage === 1">Previous</p>
+        <p @click="previousPage" :disabled="currentPage === 1">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+            <path
+              d="M41.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.3 256 246.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160zm352-160l-160 160c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L301.3 256 438.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0z"
+            />
+          </svg>
+        </p>
         <span>Page {{ currentPage }}</span>
-        <p @click="nextPage" :disabled="currentPage === totalPages">Next</p>
+        <p @click="nextPage" :disabled="currentPage === totalPages">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+            <path
+              d="M470.6 278.6c12.5-12.5 12.5-32.8 0-45.3l-160-160c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L402.7 256 265.4 393.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0l160-160zm-352 160l160-160c12.5-12.5 12.5-32.8 0-45.3l-160-160c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L210.7 256 73.4 393.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0z"
+            />
+          </svg>
+        </p>
       </div>
 
       <v-dialog v-model="delConfirmForm" max-width="400px">
@@ -101,7 +110,9 @@ import {
   getDocs,
   doc,
   deleteDoc,
+  orderBy,
 } from "firebase/firestore";
+
 import SideBar from "../../components/AdminSideBar.vue";
 
 interface CatalogItem {
@@ -327,7 +338,14 @@ export default {
   margin-right: auto;
   align-items: center;
 }
-
+.data-row {
+  cursor: pointer;
+  transition: transform 0.3s ease-in-out;
+}
+.data-row:hover {
+  background-color: #e8f3ff;
+  transform: scale(1.1);
+}
 .button-column {
   display: flex;
   align-items: center;
@@ -335,5 +353,19 @@ export default {
 }
 .data-row img {
   border-radius: 8px;
+}
+.pagination {
+  display: flex;
+  color: #656565;
+}
+.pagination p {
+  cursor: pointer;
+}
+.pagination svg {
+  fill: #656565;
+  width: 10px;
+  height: 10px;
+  margin-left: 10px;
+  margin-right: 10px;
 }
 </style>

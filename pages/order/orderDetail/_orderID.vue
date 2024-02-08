@@ -14,7 +14,9 @@
                   {{ orderAddress.name }}, {{ orderAddress.phone }},
                   {{ orderAddress.addr }}
                 </p>
-                <v-btn @click="changeAddr">เปลี่ยนที่อยู่</v-btn>
+                <v-btn v-if="!paymentSuccess" @click="changeAddr"
+                  >เปลี่ยนที่อยู่</v-btn
+                >
               </div>
             </div>
           </div>
@@ -39,14 +41,11 @@
                 <h3>Total:</h3>
                 <p>฿ {{ this.totalAmount }}</p>
               </div>
-              <div class="payPageBtn">
+              <div v-if="!paymentSuccess" class="payPageBtn">
                 <v-btn class="red" @click="cancelOrderconfirm()"
                   >ยกเลิกออเดอร์</v-btn
                 >
                 <v-btn @click="payMethod">ชำระเงิน</v-btn>
-                <form action="/create-checkout-session" method="POST">
-                  <button type="submit" id="checkout-button">Checkout</button>
-                </form>
               </div>
             </div>
           </div>
@@ -134,6 +133,7 @@ interface Order {
   price: number;
   imageUrl: string;
   quantity: number;
+  paymentSuccess: boolean;
 }
 export default Vue.extend({
   name: "checkout",
@@ -141,6 +141,7 @@ export default Vue.extend({
   data: () => ({
     changeAddrModal: false,
     totalAmount: "",
+    paymentSuccess: false,
     orderId: "",
     orderDetails: [],
     orderAddress: [],
@@ -212,6 +213,7 @@ export default Vue.extend({
             }
             this.orderAddress = orderData.address;
             this.totalAmount = orderData.totalAmount;
+            this.paymentSuccess = orderData.paymentSuccess;
           } else {
             console.error("Order not found.");
           }
@@ -276,8 +278,7 @@ export default Vue.extend({
 
     async payMethod() {
       const orderID = this.$route.params.orderID;
-      // this.$router.push('/order/payMethod/' + orderID);
-      this.$router.push("http://localhost:4242/checkout.html");
+      this.$router.push("/order/payMethod/" + orderID);
     },
 
     async cancelOrderconfirm() {

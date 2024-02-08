@@ -24,6 +24,13 @@
         </div>
         <span>{{ category.categoryId }} {{ category.productCount }}</span>
       </div>
+      <div class="add-category-btn" @click="addCategoryBtn">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512">
+          <path
+            d="M256 80c0-17.7-14.3-32-32-32s-32 14.3-32 32V224H48c-17.7 0-32 14.3-32 32s14.3 32 32 32H192V432c0 17.7 14.3 32 32 32s32-14.3 32-32V288H400c17.7 0 32-14.3 32-32s-14.3-32-32-32H256V80z"
+          />
+        </svg>
+      </div>
     </div>
 
     <v-dialog v-model="addCategoryModal" max-width="400px">
@@ -32,7 +39,7 @@
         <hr />
         <div class="addCate">
           <label>Category Name</label><br />
-          <input v-model="categoryName" />
+          <input v-model="category" />
         </div>
         <center>
           <v-btn class="green" @click="Success">Add</v-btn>
@@ -84,7 +91,7 @@ export default {
     isDropdownOpen: false,
     addCategoryModal: false,
     addCategorySuccess: false,
-    categoryName: "",
+    category: "",
   }),
   methods: {
     addCategoryBtn() {
@@ -134,7 +141,7 @@ export default {
     async Success() {
       const db = getFirestore();
       const catalogCollectionRef = collection(db, "category");
-      const categoryNameToCheck = this.categoryName.trim();
+      const categoryNameToCheck = this.category.trim();
       const catalogQuerySnapshot = await getDocs(catalogCollectionRef);
       try {
         const categoryNames = catalogQuerySnapshot.docs.map((doc) => doc.id);
@@ -144,10 +151,7 @@ export default {
             "Category name already exists. Please choose a different name."
           );
         } else {
-          const newCategoryDocRef = doc(
-            catalogCollectionRef,
-            this.categoryName
-          );
+          const newCategoryDocRef = doc(catalogCollectionRef, this.category);
           await setDoc(newCategoryDocRef, {});
           this.addCategoryModal = false;
           this.addCategorySuccess = true;
@@ -204,6 +208,7 @@ h1 {
   box-shadow: 0 10px 10px #a4a3a3;
   display: flex;
   align-items: flex-end;
+  transition: transform 0.3s ease-in-out;
 }
 .category-card span {
   font-size: 22px;
@@ -214,6 +219,7 @@ h1 {
   background-color: rgb(207, 207, 207);
   cursor: pointer;
   box-shadow: 0 20px 20px #a4a3a3;
+  transform: scale(1.1);
 }
 .more {
   position: relative;
@@ -263,5 +269,29 @@ h1 {
   margin-left: 40px;
   margin-bottom: 65px;
   margin-top: 30px;
+}
+.add-category-btn {
+  background-color: #ffffff;
+  width: 250px;
+  height: 200px;
+  border-radius: 10px;
+  color: #474385;
+  margin-top: 50px;
+  box-shadow: 0 10px 10px #a4a3a3;
+  cursor: pointer;
+  transition: transform 0.3s ease-in-out;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.add-category-btn:hover {
+  cursor: pointer;
+  box-shadow: 0 20px 20px #a4a3a3;
+  transform: scale(1.1);
+}
+.add-category-btn svg {
+  fill: #636363;
+  width: 50px;
+  height: 50px;
 }
 </style>
