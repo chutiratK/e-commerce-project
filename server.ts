@@ -10,7 +10,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-app.post("/create-payment-intent", async (req, res) => {
+app.post("/create-payment-intent", async (req: any, res: any) => {
   try {
     const { amount, payment } = req.body;
     if (isNaN(amount)) {
@@ -29,47 +29,47 @@ app.post("/create-payment-intent", async (req, res) => {
       },
       confirmation_method: "manual",
       confirm: true,
-      // return_url: "http://localhost:3000",
     });
     res.status(200).send({
       clientSecret: paymentIntent.client_secret,
       success: true,
     });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: error });
   }
 });
+
 const endpointSecret = "whsec_8Gd8RTuxXEKfiaZ96Ec3bZPl1uJ12VGV";
 
-app.post(
-  "/webhook",
-  bodyParser.raw({ type: "application/json" }),
-  (req, res) => {
-    const sig = req.headers["stripe-signature"];
+// app.post(
+//   "/webhook",
+//   bodyParser.raw({ type: "application/json" }),
+//   (req, res) => {
+//     const sig = req.headers["stripe-signature"];
 
-    let event;
+//     let event;
 
-    try {
-      event = stripe.webhooks.constructEvent(req.body, sig, endpointSecret);
-    } catch (err) {
-      console.error("Webhook Error:", err.message);
-      return res.status(400).send(`Webhook Error: ${err.message}`);
-    }
+//     try {
+//       event = stripe.webhooks.constructEvent(req.body, sig, endpointSecret);
+//     } catch (err) {
+//       console.error("Webhook Error:", err.message);
+//       return res.status(400).send(`Webhook Error: ${err.message}`);
+//     }
 
-    // Handle the event
-    if (event.type === "payment_intent.succeeded") {
-      const paymentIntent = event.data.object;
-      console.log("PaymentIntent was successful!");
-      // res.redirect("http://localhost:3000/success");
-    } else if (event.type === "payment_intent.payment_failed") {
-      const paymentIntent = event.data.object;
-      console.error("PaymentIntent failed:", paymentIntent.last_payment_error);
-      // Handle payment failure
-    }
+//     // Handle the event
+//     if (event.type === "payment_intent.succeeded") {
+//       const paymentIntent = event.data.object;
+//       console.log("PaymentIntent was successful!");
+//       // res.redirect("http://localhost:3000/success");
+//     } else if (event.type === "payment_intent.payment_failed") {
+//       const paymentIntent = event.data.object;
+//       console.error("PaymentIntent failed:", paymentIntent.last_payment_error);
+//       // Handle payment failure
+//     }
 
-    res.status(200).json({ received: true });
-  }
-);
+//     res.status(200).json({ received: true });
+//   }
+// );
 const PORT = 3001;
 
 app.listen(PORT, () => {
