@@ -109,4 +109,8 @@ export default {
     STRIPE_API_PUBLIC_KEY: process.env.STRIPE_API_PUBLIC_KEY,
     STRIPE_API_SECRET_KEY: process.env.STRIPE_API_SECRET_KEY,
   },
+  server: {
+    port: 3000,
+    host: "0.0.0.0",
+  },
 };
