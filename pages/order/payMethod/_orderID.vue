@@ -165,7 +165,7 @@ export default Vue.extend({
       console.log("token: ", token);
       try {
         const result = await axios.post(
-          "http://localhost:3001/create-payment-intent",
+          "http://localhost:3000/create-payment-intent",
           {
             amount: this.totalAmount,
             payment: {

@@ -24,12 +24,5 @@
   },
   "exclude": ["node_modules", ".nuxt", "dist"],
   "types": ["vue"],
-  "include": [
-    "**/*.ts",
-    "**/*.d.ts",
-    "middleware/auth.js",
-    "middleware/auth.js",
-    "server.ts",
-    "plugins/firebase.ts"
-  ]
+  "include": ["**/*.ts", "**/*.d.ts", "server.ts", "plugins/firebase.ts"]
 }
