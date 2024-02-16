@@ -45,6 +45,7 @@
         </div>
       </div>
     </div>
+
     <v-dialog v-model="changeAddrModal" max-width="600px">
       <v-card
         style="background-color: white; color: #525252"
@@ -52,6 +53,7 @@
       >
         <v-card-title>เปลี่ยนที่อยู่</v-card-title>
         <hr />
+        <v-btn @click="createAddressBtn">+ address</v-btn>
         <center>
           <div v-for="(address, index) in addresses" :key="index">
             <div class="item">
@@ -68,8 +70,52 @@
               </div>
             </div>
           </div>
-          <v-btn class="blue" @click="changeAddrr">ok</v-btn>
+          <v-btn class="changeAddr blue" @click="changeAddrr">ok</v-btn>
         </center>
+      </v-card>
+    </v-dialog>
+
+    <v-dialog v-model="createAddressModal" max-width="550px">
+      <v-card
+        style="background-color: white; color: #525252"
+        class="createAddressModal"
+      >
+        <v-card-title>Address</v-card-title>
+        <hr />
+        <div class="createAddress">
+          <div class="row">
+            <div class="col-md-6">
+              <label for="displayName" class="input-label">ชื่อ-นามสกุล</label>
+              <input
+                id="displayName"
+                v-model="name"
+                placeholder="ชื่อ-นามสกุล"
+              />
+            </div>
+            <div class="col-md-6">
+              <label for="phonenumber" class="input-label">เบอร์โทรศัพท์</label>
+              <input
+                id="phonenumber"
+                v-model="phone"
+                placeholder="เบอร์โทรศัพท์"
+              />
+            </div>
+            <div class="addrdiv">
+              <label for="addr" class="input-label">รายละเอียดที่อยู่</label>
+              <textarea
+                id="addr"
+                v-model="addr"
+                placeholder="บ้านเลขที่ จังหวัด รหัสไปรษณีย์"
+              ></textarea>
+            </div>
+          </div>
+          <center>
+            <v-btn @click="createAddress" class="addressBtn" color="blue"
+              >submit</v-btn
+            >
+            <!-- <v-btn @click="cancelEditName" color="red">cancel</v-btn><br> -->
+          </center>
+        </div>
       </v-card>
     </v-dialog>
   </v-app>
@@ -115,6 +161,11 @@ export default Vue.extend({
     alertTitle: "",
     alertDescription: "",
     alertType: "success",
+    createAddressModal: false,
+    editAddressModal: false,
+    name: "",
+    phone: "",
+    addr: "",
   }),
 
   computed: {
@@ -275,6 +326,34 @@ export default Vue.extend({
         alert("กรุณากรอกที่อยู่ก่อนทำการสั่งซื้อ");
       }
     },
+    createAddressBtn() {
+      this.createAddressModal = true;
+      this.changeAddrModal = false;
+    },
+    async createAddress() {
+      const db = getFirestore();
+      const addressData = {
+        addressID: "",
+        name: this.name,
+        phone: this.phone,
+        addr: this.addr,
+        selectedAddr: false,
+      };
+      try {
+        const docRef = await addDoc(
+          collection(db, "address", this.currentUser.uid, "addressUser"),
+          addressData
+        );
+        addressData.addressID = docRef.id;
+        await setDoc(
+          doc(db, "address", this.currentUser.uid, "addressUser", docRef.id),
+          addressData
+        );
+        this.createAddressModal = false;
+      } catch (error) {
+        console.error("Error adding category: ", error);
+      }
+    },
     changeAddr() {
       this.changeAddrModal = true;
     },
@@ -367,5 +446,8 @@ hr {
 }
 .changeAddrModal {
   height: 100%;
+}
+.changeAddr {
+  margin-bottom: 10px;
 }
 </style>

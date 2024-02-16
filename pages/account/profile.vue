@@ -8,7 +8,7 @@
     <div class="row">
       <AccSideBar />
       <div class="col-md-8 mt-1">
-        <div v-if="currentUser">
+        <div>
           <div class="card mb-3 content">
             <h2 class="m-3 pt-3">Profile</h2>
             <hr />

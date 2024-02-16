@@ -3,9 +3,13 @@
     <NavBar />
     <Nuxt />
     <h1>About</h1>
+    <!-- <LineLogin /> -->
   </v-app>
 </template>
 
 <script>
-export default {};
+import LineLogin from "../components/LineLogin.vue";
+export default {
+  components: { LineLogin },
+};
 </script>

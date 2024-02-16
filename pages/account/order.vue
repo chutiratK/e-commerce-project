@@ -8,13 +8,13 @@
     <div class="row">
       <AccSideBar />
       <div class="col-md-8 mt-1">
-        <div v-if="currentUser">
+        <div>
           <div class="card mb-3 content">
             <h2 class="m-3 pt-3">Order</h2>
             <hr />
             <div class="card-body">
               <div class="orderList">
-                <div v-for="(order, index) in orders" :key="index">
+                <div v-for="(order, index) in paginatedData" :key="index">
                   <div class="item">
                     <div class="order-info">
                       <p>Order ID: {{ order.orderID }}</p>
@@ -36,6 +36,23 @@
                     </div>
                   </div>
                 </div>
+              </div>
+              <div class="pagination">
+                <p @click="previousPage" :disabled="currentPage === 1">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+                    <path
+                      d="M41.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.3 256 246.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160zm352-160l-160 160c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L301.3 256 438.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0z"
+                    />
+                  </svg>
+                </p>
+                <span>Page {{ currentPage }}</span>
+                <p @click="nextPage" :disabled="currentPage === totalPages">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+                    <path
+                      d="M470.6 278.6c12.5-12.5 12.5-32.8 0-45.3l-160-160c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L402.7 256 265.4 393.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0l160-160zm-352 160l160-160c12.5-12.5 12.5-32.8 0-45.3l-160-160c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L210.7 256 73.4 393.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0z"
+                    />
+                  </svg>
+                </p>
               </div>
             </div>
           </div>
@@ -70,10 +87,20 @@ export default Vue.extend({
   data: () => ({
     loading: true,
     orders: [] as Order[],
+    currentPage: 1,
+    itemsPerPage: 5,
   }),
   computed: {
     currentUser() {
       return this.$store.state.user;
+    },
+    totalPages() {
+      return Math.ceil(this.orders.length / this.itemsPerPage);
+    },
+    paginatedData() {
+      const startIndex = (this.currentPage - 1) * this.itemsPerPage;
+      const endIndex = startIndex + this.itemsPerPage;
+      return this.orders.slice(startIndex, endIndex);
     },
   },
   methods: {
@@ -98,6 +125,16 @@ export default Vue.extend({
         });
       } catch (error) {
         console.error("Error fetching user data:", error.message);
+      }
+    },
+    previousPage() {
+      if (this.currentPage > 1) {
+        this.currentPage--;
+      }
+    },
+    nextPage() {
+      if (this.currentPage < this.totalPages) {
+        this.currentPage++;
       }
     },
     orderDetails(orderID) {

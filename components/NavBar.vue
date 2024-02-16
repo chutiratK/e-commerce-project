@@ -14,7 +14,7 @@
         <router-link class="link" to="/">Home</router-link>
         <router-link class="link" to="/about">About</router-link>
         <router-link class="link" to="/">Member</router-link>
-        <template v-if="currentUser">
+        <template v-if="currentUser || isLineUser">
           <v-menu offset-y>
             <template v-slot:activator="{ on, attrs }">
               <v-btn color="transparent" dark v-bind="attrs" v-on="on">
@@ -49,6 +49,23 @@
                 </svg>
                 <v-list-item-title style="color: #525252"
                   >Profile</v-list-item-title
+                >
+                <span>></span>
+              </v-list-item>
+              <v-list-item @click="toAddress" class="sub-menu-link">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  height="16"
+                  width="12"
+                  viewBox="0 0 384 512"
+                >
+                  <path
+                    fill="#000000"
+                    d="M215.7 499.2C267 435 384 279.4 384 192C384 86 298 0 192 0S0 86 0 192c0 87.4 117 243 168.3 307.2c12.3 15.3 35.1 15.3 47.4 0zM192 128a64 64 0 1 1 0 128 64 64 0 1 1 0-128z"
+                  />
+                </svg>
+                <v-list-item-title style="color: #525252"
+                  >Address</v-list-item-title
                 >
                 <span>></span>
               </v-list-item>
@@ -127,6 +144,7 @@ import Vue from "vue";
 import Modal from "../components/modals/login-modal.vue";
 import Search from "../components/searchTag.vue";
 import toggleBar from "../components/ToggleBar.vue";
+import liff from "@line/liff";
 
 export default Vue.extend({
   name: "NavBar",
@@ -135,22 +153,31 @@ export default Vue.extend({
     currentUser() {
       return this.$store.state.user;
     },
+    // isLineUser() {
+    //   return this.$store.state.user.isLineUser;
+    // },
   },
   data: () => ({
     showCart: false,
     cartItemCount: "0",
+    isLineUser: false,
   }),
   methods: {
     async signOut() {
-      const auth = getAuth();
-      signOut(auth)
-        .then(() => {
-          // this.$router.go(0);
-          this.$router.push("/");
-        })
-        .catch((error) => {
-          console.error("error: ", error.message);
-        });
+      if (this.isLineUser) {
+        await liff.logout();
+        window.location.reload();
+      } else {
+        const auth = getAuth();
+        signOut(auth)
+          .then(() => {
+            // this.$router.go(0);
+            this.$router.push("/");
+          })
+          .catch((error) => {
+            console.error("error: ", error.message);
+          });
+      }
     },
     async updateCartItemCount() {
       const db = getFirestore();
@@ -163,6 +190,17 @@ export default Vue.extend({
       onSnapshot(cartDocRef, (snapshot) => {
         this.cartItemCount = snapshot.size.toString();
       });
+    },
+    async checkLineLogin() {
+      if (liff.isLoggedIn()) {
+        this.isLineUser = true;
+        console.log("ล้อกอินไลน์");
+        // this.runApp();
+      } else {
+        this.isLineUser = false;
+      }
+
+      // this.isLoggedIn = liff.isLoggedIn()
     },
     goToProfile() {
       this.$router.push("/account/profile");
@@ -186,6 +224,9 @@ export default Vue.extend({
       this.$router.push({ path: "/product", query: { q: "electronics" } });
       this.fetchData();
     },
+    toAddress() {
+      this.$router.push("/account/address");
+    },
     wishList() {
       this.$router.push("/account/wishList");
     },
@@ -198,6 +239,7 @@ export default Vue.extend({
   },
   mounted() {
     this.updateCartItemCount();
+    this.checkLineLogin();
   },
 });
 </script>

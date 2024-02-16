@@ -9,20 +9,36 @@
         v-for="(category, index) in categoryData"
         :key="index"
         class="category-card"
-        @click="categoryDetail(categoryId)"
       >
-        <div class="more" @click="toggleDropdown">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512">
-            <path
-              d="M8 256a56 56 0 1 1 112 0A56 56 0 1 1 8 256zm160 0a56 56 0 1 1 112 0 56 56 0 1 1 -112 0zm216-56a56 56 0 1 1 0 112 56 56 0 1 1 0-112z"
-            />
-          </svg>
+        <div class="more">
+          <v-menu offset-y>
+            <template v-slot:activator="{ on }">
+              <v-btn icon v-on="on">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512">
+                  <path
+                    d="M8 256a56 56 0 1 1 112 0A56 56 0 1 1 8 256zm160 0a56 56 0 1 1 112 0 56 56 0 1 1 -112 0zm216-56a56 56 0 1 1 0 112 56 56 0 1 1 0-112z"
+                  />
+                </svg>
+              </v-btn>
+            </template>
+            <v-list>
+              <!-- <v-list-item @click="editCategory(category.categoryId)">
+                <v-list-item-content>
+                  <v-list-item-title>Edit</v-list-item-title>
+                </v-list-item-content>
+              </v-list-item> -->
+              <v-list-item @click="deleteCategory(category.categoryId)">
+                <v-list-item-content>
+                  <v-list-item-title>Delete</v-list-item-title>
+                </v-list-item-content>
+              </v-list-item>
+            </v-list>
+          </v-menu>
         </div>
-        <div class="dropdown-content" v-show="isDropdownOpen">
-          <div @click="editItem">Edit</div>
-          <div @click="deleteItem">Delete</div>
-        </div>
-        <span>{{ category.categoryId }} {{ category.productCount }}</span>
+
+        <span class="titleCategory"
+          >{{ category.categoryId }} {{ category.productCount }}</span
+        >
       </div>
       <div class="add-category-btn" @click="addCategoryBtn">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512">
@@ -42,8 +58,10 @@
           <input v-model="category" />
         </div>
         <center>
-          <v-btn class="green" @click="Success">Add</v-btn>
-          <v-btn class="red" @click="cancel">Cancel</v-btn>
+          <div class="btn">
+            <v-btn class="green" @click="Success">Add</v-btn>
+            <v-btn class="red" @click="cancel">Cancel</v-btn>
+          </div>
         </center>
       </v-card>
     </v-dialog>
@@ -56,7 +74,7 @@
             height="200px"
           />
           <h3>add successfully!</h3>
-          <v-btn class="green" @click="ok">OK</v-btn>
+          <v-btn class="green btn" @click="ok">OK</v-btn>
         </center>
       </v-card>
     </v-dialog>
@@ -88,7 +106,6 @@ export default {
     catalogData: [] as CatalogItem[],
     categoryProductIds: [],
     categoryData: [],
-    isDropdownOpen: false,
     addCategoryModal: false,
     addCategorySuccess: false,
     category: "",
@@ -122,7 +139,7 @@ export default {
         }
         console.log("Category Data:", categoryData);
       } catch (error) {
-        console.error("Error fetching user data:", error.message);
+        console.error("Error fetching user data:", error);
       }
     },
     categoryDetail() {},
@@ -158,19 +175,21 @@ export default {
           this.fetchCatalogData();
         }
       } catch (error) {
-        console.error("Error checking category name:", error.message);
+        console.error("Error checking category name:", error);
       }
     },
-    toggleDropdown() {
-      this.isDropdownOpen = !this.isDropdownOpen;
-    },
-    editItem() {
-      console.log("Edit item");
-      this.isDropdownOpen = false;
-    },
-    deleteItem() {
-      console.log("Delete item");
-      this.isDropdownOpen = false;
+    // editCategory(category: any) {},
+    async deleteCategory(categoryId: any) {
+      const db = getFirestore();
+      const categoryDocRef = doc(db, "category", categoryId);
+
+      try {
+        await deleteDoc(categoryDocRef);
+
+        this.fetchCatalogData();
+      } catch (error) {
+        console.error("Error deleting category:", error);
+      }
     },
     cancel() {
       this.addCategoryModal = false;
@@ -206,8 +225,6 @@ h1 {
   color: #ffffff;
   margin-top: 50px;
   box-shadow: 0 10px 10px #a4a3a3;
-  display: flex;
-  align-items: flex-end;
   transition: transform 0.3s ease-in-out;
 }
 .category-card span {
@@ -215,6 +232,10 @@ h1 {
   font-weight: bold;
   margin-left: 10px;
 }
+.titleCategory {
+  margin-top: 5px;
+}
+
 .category-card:hover {
   background-color: rgb(207, 207, 207);
   cursor: pointer;
@@ -222,9 +243,9 @@ h1 {
   transform: scale(1.1);
 }
 .more {
-  position: relative;
-  top: 0;
-  right: 0;
+  display: flex;
+  flex-direction: row-reverse;
+  margin-right: 10px;
 }
 .more svg {
   width: 20px;
@@ -240,25 +261,6 @@ h1 {
   fill: #2f61d4;
 }
 
-.dropdown-content {
-  display: none;
-  position: absolute;
-  top: 100%;
-  right: 0;
-  background-color: #f9f9f9;
-  min-width: 160px;
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
-  z-index: 1;
-}
-
-.dropdown-content div {
-  padding: 10px;
-  cursor: pointer;
-}
-
-.dropdown-content div:hover {
-  background-color: #ddd;
-}
 .addCate input {
   border: 1px solid #ccc;
   padding: 8px;
@@ -293,5 +295,11 @@ h1 {
   fill: #636363;
   width: 50px;
   height: 50px;
+}
+.btn {
+  margin-bottom: 8px;
+}
+.popUp {
+  height: 300px;
 }
 </style>

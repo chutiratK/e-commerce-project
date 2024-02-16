@@ -47,6 +47,9 @@
                 >
                 <v-btn @click="payMethod">ชำระเงิน</v-btn>
               </div>
+              <div v-else class="backPage">
+                <button class="backPageBtn" @click="backPage">BACK</button>
+              </div>
             </div>
           </div>
         </div>
@@ -314,6 +317,9 @@ export default Vue.extend({
     cancel() {
       this.cancelOrderConfirmForm = false;
     },
+    backPage() {
+      this.$router.push("/account/order");
+    },
     cancelfin() {
       this.$router.push("/account/order");
     },
@@ -401,5 +407,18 @@ hr {
 }
 .changeAddrModal {
   height: 400px;
+}
+.backPageBtn {
+  background-color: #5b5353;
+  color: #ffffff;
+  padding: 5px;
+  border-radius: 8px;
+  width: 30%;
+  margin-bottom: 10px;
+}
+.backPage {
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 </style>

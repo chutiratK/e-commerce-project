@@ -8,7 +8,7 @@
     <div class="row">
       <AccSideBar />
       <div class="col-md-8 mt-1">
-        <div v-if="currentUser">
+        <div>
           <div class="card mb-3 content">
             <h2 class="m-3 pt-3">My Wish List ({{ this.wishCount }})</h2>
             <hr />
@@ -111,6 +111,7 @@
               width="200px"
               height="200px"
             />
+
             <h3>added to cart successfully!</h3>
             <br />
             <v-btn class="success" @click="Success">ok</v-btn>
@@ -129,8 +130,6 @@ import {
   collection,
   onSnapshot,
   doc,
-  getDoc,
-  setDoc,
   deleteDoc,
 } from "firebase/firestore";
 
@@ -259,14 +258,6 @@ export default Vue.extend({
         console.error("Error deleting product on wish list:", error.message);
       }
     },
-    totalPages() {
-      return Math.ceil(this.catalogData.length / this.itemsPerPage);
-    },
-    paginatedData() {
-      const startIndex = (this.currentPage - 1) * this.itemsPerPage;
-      const endIndex = startIndex + this.itemsPerPage;
-      return this.catalogData.slice(startIndex, endIndex);
-    },
     previousPage() {
       if (this.currentPage > 1) {
         this.currentPage--;
@@ -278,7 +269,6 @@ export default Vue.extend({
       }
     },
     productDetail(productID: string, category: string) {
-      // this.$router.push("/category/productDetail/" + productID);
       this.$router.push({
         path: "/category/productDetail/",
         query: { category, productID },
