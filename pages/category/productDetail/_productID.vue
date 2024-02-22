@@ -91,6 +91,7 @@ export default {
   }),
   mounted() {
     this.fetchExistingData();
+    this.$store.dispatch("fetchUser");
   },
   computed: {
     currentUser() {

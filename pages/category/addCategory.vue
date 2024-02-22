@@ -145,15 +145,15 @@ export default {
     categoryDetail() {},
     async categoryCount() {
       const db = getFirestore();
-      const cartDocRef = collection(
-        db,
-        "category",
-        this.currentUser.uid,
-        "cartUser"
-      );
-      onSnapshot(cartDocRef, (snapshot) => {
-        this.cartItemCount = snapshot.size.toString();
-      });
+      // const cartDocRef = collection(
+      //   db,
+      //   "category",
+      //   this.currentUser.uid,
+      //   "cartUser"
+      // );
+      // onSnapshot(cartDocRef, (snapshot) => {
+      //   this.cartItemCount = snapshot.size.toString();
+      // });
     },
     async Success() {
       const db = getFirestore();

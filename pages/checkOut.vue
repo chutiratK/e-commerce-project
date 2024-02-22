@@ -363,6 +363,7 @@ export default Vue.extend({
   },
   async mounted() {
     await this.fetchUserData();
+    this.$store.dispatch("fetchUser");
   },
 });
 </script>

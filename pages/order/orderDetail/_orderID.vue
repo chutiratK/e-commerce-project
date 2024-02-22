@@ -170,6 +170,7 @@ export default Vue.extend({
       const orderID = this.$route.params.orderID;
       console.log("OrderID detail page:", orderID);
       this.fetchUserData(orderID);
+      this.$store.dispatch("fetchUser");
       this.orderId = orderID;
     } catch (error) {
       console.error("Error sending product id:", error);

@@ -113,8 +113,6 @@ import {
   orderBy,
 } from "firebase/firestore";
 
-import SideBar from "../../components/AdminSideBar.vue";
-
 interface CatalogItem {
   productID: string;
   category: string;
@@ -135,9 +133,7 @@ export default {
     currentPage: 1,
     itemsPerPage: 6,
   }),
-  components: {
-    SideBar,
-  },
+  components: {},
   computed: {
     totalPages() {
       return Math.ceil(this.catalogData.length / this.itemsPerPage);

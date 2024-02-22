@@ -5,9 +5,28 @@
     <p><b>DisplayName:</b> {{ displayName }}</p>
     <p><b>StatusMessage:</b> {{ statusMessage }}</p>
     <p><b>Email:</b> {{ email }}</p> -->
-    <v-btn class="green" v-if="!isLoggedIn" @click="logIn"
-      >LOGIN WITH LINE</v-btn
-    >
+    <center>
+      <v-btn
+        id="login-by-line-button"
+        class="social-btn"
+        elevation="0"
+        outlined
+        min-width="44"
+        height="40"
+        @click="logIn()"
+      >
+        <v-img
+          id="login-by-line-button-image"
+          class="float-right"
+          :src="require('../assets/images/lineIcon.png')"
+          width="24"
+          :aspect-ratio="1"
+        />
+      </v-btn>
+      <!-- <v-btn class="green login-button" v-if="!isLoggedIn" @click="logIn"
+        >LOGIN WITH LINE</v-btn
+      ><br /><br /> -->
+    </center>
     <!-- <button v-if="isLoggedIn" @click="logOut">Log Out</button> -->
   </div>
 </template>
@@ -50,9 +69,9 @@ export default class lineLiff extends Vue {
   //   await this.main();
   // }
 
-  async initLIFF() {
-    await liff.init({ liffId: "2003517508-8gKpw6JQ" });
-  }
+  // async initLIFF() {
+  //   await liff.init({ liffId: "2003517508-8gKpw6JQ" });
+  // }
 
   // async logOut() {
   //   await liff.logout();
@@ -61,30 +80,32 @@ export default class lineLiff extends Vue {
 
   async logIn() {
     await liff.login({ redirectUri: window.location.href });
-    await this.initLIFF();
-    await this.main();
+    await liff.init({ liffId: "2003517508-8gKpw6JQ" });
+    if (liff.isLoggedIn()) {
+      await this.getUserProfile();
+      this.isLoggedIn = true;
+    }
   }
 
   async getUserProfile() {
     const user = await liff.getProfile();
     console.log("profile ja:", user);
-    this.isLoggedIn = true;
     this.runApp();
-    await this.storeUserDataInFirestore(user, "Line");
+    await this.storeUserDataInFirestore(user, "line");
   }
 
-  async main() {
-    if (liff.isInClient()) {
-      await this.getUserProfile();
-    } else {
-      if (liff.isLoggedIn()) {
-        await this.getUserProfile();
-        this.isLoggedIn = true;
-      } else {
-        this.isLoggedIn = false;
-      }
-    }
-  }
+  // async main() {
+  //   if (liff.isInClient()) {
+  //     await this.getUserProfile();
+  //   } else {
+  //     if (liff.isLoggedIn()) {
+  //       await this.getUserProfile();
+  //       this.isLoggedIn = true;
+  //     } else {
+  //       this.isLoggedIn = false;
+  //     }
+  //   }
+  // }
 
   async storeUserDataInFirestore(user: any, provider: string) {
     const db = getFirestore();

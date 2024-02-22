@@ -1,5 +1,5 @@
 <template>
-  <v-app style="background-color: rgb(236, 236, 236)">
+  <v-app style="background-color: rgb(236, 236, 236); overflow: hidden">
     <NavBar />
     <Nuxt />
     <h1 class="m-3 pt-3" style="color: #5b5353">Account User</h1>
@@ -190,6 +190,13 @@
                   <span v-if="this.userData.provider == 'email'">
                     <img
                       src="../../assets/images/emailIcon.png"
+                      width="20px"
+                      height="20px"
+                    />
+                  </span>
+                  <span v-if="this.userData.provider == 'line'">
+                    <img
+                      src="../../assets/images/lineIcon.png"
                       width="20px"
                       height="20px"
                     />
@@ -399,6 +406,7 @@ export default Vue.extend({
   },
   mounted() {
     (this as any).fetchUserData();
+    this.$store.dispatch("fetchUser");
   },
 });
 </script>
@@ -412,7 +420,7 @@ export default Vue.extend({
   background-color: rgb(253, 253, 253);
   color: #5b5353;
   width: 700px;
-  height: 500px;
+  height: 500px !important;
 }
 .content h2,
 hr {

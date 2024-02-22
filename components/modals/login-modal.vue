@@ -3,7 +3,7 @@
     <template v-slot:activator="{ on }">
       <v-btn text class="primary" v-on="on"> Sign in </v-btn>
     </template>
-    <v-card>
+    <v-card max-width="600px" class="login-modal">
       <v-row align="center" justify="center">
         <v-col cols="12" sm="20" md="10" align="center">
           <v-card width="800" class="elevation-4 text-left" shaped>
@@ -54,15 +54,12 @@
               not have an account? <a @click="signUp">Sign up</a>
             </p>
             <SignUp />
-            <center>
-              <v-btn @click="handlerModal" color="green"
-                >Login with Phone</v-btn
-              >
+            <div class="social-btn">
               <PhoneModal />
-            </center>
-            <br />
-            <LineLogin />
-            <SignIn />
+              <LineLogin />
+              <SignIn />
+            </div>
+
             <br />
           </v-card>
         </v-col>
@@ -97,9 +94,6 @@ export default Vue.extend({
   }),
   components: { SignIn, SignUp, PhoneModal, LineLogin },
   methods: {
-    handlerModal() {
-      EventBus.$emit("show-phone-modal");
-    },
     signUp() {
       EventBus.$emit("show-signup-modal");
     },
@@ -153,6 +147,18 @@ export default Vue.extend({
 </script>
 
 <style>
+.login-modal {
+  height: 400px;
+  width: 600px;
+  padding: 8px;
+  overflow: hidden;
+}
+.social-btn {
+  display: flex;
+  justify-content: center;
+  white-space: break-spaces;
+  gap: 10px;
+}
 .warningLogin {
   color: red;
   text-align: center;

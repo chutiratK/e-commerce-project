@@ -220,6 +220,7 @@ export default Vue.extend({
     } catch (error) {
       console.error("Error :", error);
     }
+    this.$store.dispatch("fetchUser");
   },
 });
 </script>

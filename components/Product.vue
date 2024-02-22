@@ -123,6 +123,7 @@ export default {
   },
   mounted() {
     (this as any).fetchData();
+    this.$store.dispatch("fetchUser");
   },
 };
 </script>

@@ -123,8 +123,7 @@ import {
   deleteDoc,
   updateDoc,
   onSnapshot,
-  setDoc,
-  getDoc,
+
 } from "firebase/firestore";
 interface Cart {
   productID: string;
@@ -254,6 +253,7 @@ export default {
   },
   mounted() {
     this.fetchUserData();
+    this.$store.dispatch("fetchUser");
   },
 };
 </script>

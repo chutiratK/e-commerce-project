@@ -106,12 +106,13 @@ export default {
           }
         }
       } catch (error) {
-        console.error("Error fetching user data:", error.message);
+        console.error("Error fetching user data:", error);
       }
     },
   },
   mounted() {
     (this as any).fetchData();
+    this.$store.dispatch("fetchUser");
   },
 };
 </script>

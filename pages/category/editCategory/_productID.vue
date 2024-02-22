@@ -15,9 +15,9 @@
           <div class="col-2"></div>
           <div class="col-8">
             <form>
-              <div class="selectCategory">
+              <!-- <div class="selectCategory">
                 <div>Selected Category: {{ this.category }}</div>
-                <select v-model="category">
+                <select v-model="selectedCategory">
                   <option disabled value="">Please select one</option>
                   <option
                     v-for="(category, index) in this.categoryProductIds"
@@ -26,7 +26,7 @@
                     {{ category.toUpperCase() }}
                   </option>
                 </select>
-              </div>
+              </div> -->
 
               <div class="form-group">
                 <label>Product Name</label>
@@ -145,6 +145,7 @@ export default {
     productID: "",
     tags: "",
     category: "",
+    selectedCategory: "",
     categoryChoice: "",
     editSuccess: false,
     uploadedImage: null,

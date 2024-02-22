@@ -1,5 +1,5 @@
 <template>
-  <v-app style="background-color: rgb(236, 236, 236)">
+  <v-app style="background-color: rgb(236, 236, 236); overflow: hidden">
     <NavBar />
     <Nuxt />
     <h1 class="m-3 pt-3" style="color: #5b5353">Account User</h1>
@@ -409,6 +409,7 @@ export default Vue.extend({
   },
   mounted() {
     (this as any).fetchUserData();
+    this.$store.dispatch("fetchUser");
   },
 });
 </script>
