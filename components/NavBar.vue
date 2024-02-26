@@ -294,7 +294,14 @@
 import "bootstrap-icons/font/bootstrap-icons.css";
 import "firebase/auth";
 import { getAuth, signOut } from "firebase/auth";
-import { getFirestore, collection, onSnapshot } from "firebase/firestore";
+import {
+  getFirestore,
+  collection,
+  onSnapshot,
+  getDoc,
+  doc,
+  setDoc,
+} from "firebase/firestore";
 import Vue from "vue";
 import Modal from "../components/modals/login-modal.vue";
 import Search from "../components/searchTag.vue";
@@ -323,13 +330,17 @@ export default Vue.extend({
       if (this.isLineUser) {
         await liff.logout();
         this.$router.push("/");
-        window.location.reload();
+        setTimeout(() => {
+          this.$router.go(0);
+        }, 100);
       } else {
         const auth = getAuth();
         signOut(auth)
           .then(() => {
-            // this.$router.go(0);
             this.$router.push("/");
+            setTimeout(() => {
+              this.$router.go(0);
+            }, 100);
           })
           .catch((error) => {
             console.error("error: ", error.message);
@@ -352,13 +363,49 @@ export default Vue.extend({
       if (liff.isLoggedIn()) {
         this.isLineUser = true;
         console.log("ล้อกอินไลน์");
-        // this.runApp();
+        try {
+          await liff.init({ liffId: "2003517508-8gKpw6JQ" });
+          if (liff.isLoggedIn()) {
+            const user = await liff.getProfile();
+            console.log("profile ja:", user);
+            await this.storeUserDataInFirestore(user, "line");
+          } else {
+            console.log("ยังไม่ได้เข้าสู่ระบบด้วย LINE");
+          }
+        } catch (error) {
+          console.error("เข้าสู่ระบบด้วย LINE ไม่ได้: ", error);
+        }
       } else {
         this.isLineUser = false;
       }
-
-      // this.isLoggedIn = liff.isLoggedIn()
     },
+
+    async storeUserDataInFirestore(user: any, provider: string) {
+      const db = getFirestore();
+      const userRef = doc(db, "users", user.userId);
+      try {
+        const docSnapshot = await getDoc(userRef);
+        if (!docSnapshot.exists()) {
+          const userData = {
+            uid: user.userId,
+            displayName: user.displayName || null,
+            email: liff.getDecodedIDToken()?.email || null,
+            phone: user.phone || null,
+            address: user.address || null,
+            role: "user",
+            provider: provider,
+          };
+
+          await setDoc(userRef, userData);
+          console.log("Document added with ID: ", user.userId);
+        } else {
+          console.log("Document already exist ");
+        }
+      } catch (error) {
+        console.error("Error adding document: ", error);
+      }
+    },
+
     goToProfile() {
       this.$router.push("/account/profile");
     },

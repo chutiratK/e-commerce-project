@@ -7,13 +7,14 @@
     <p><b>Email:</b> {{ email }}</p> -->
     <center>
       <v-btn
+        v-if="!isLoggedIn"
         id="login-by-line-button"
         class="social-btn"
         elevation="0"
         outlined
         min-width="44"
         height="40"
-        @click="logIn()"
+        @click="logIn"
       >
         <v-img
           id="login-by-line-button-image"
@@ -51,18 +52,19 @@ export default class lineLiff extends Vue {
   // onTimeChange() {
   //   console.log("profile jaaa:", this.isLoggedIn);
   // }
-  runApp() {
-    liff
-      .getProfile()
-      .then((profile: any) => {
-        this.pictureUrl = profile.pictureUrl;
-        this.userId = profile.userId;
-        this.displayName = profile.displayName;
-        this.statusMessage = profile.statusMessage;
-        this.email = liff.getDecodedIDToken()?.email;
-      })
-      .catch((err: any) => console.error(err));
-  }
+
+  // runApp() {
+  //   liff
+  //     .getProfile()
+  //     .then((profile: any) => {
+  //       this.pictureUrl = profile.pictureUrl;
+  //       this.userId = profile.userId;
+  //       this.displayName = profile.displayName;
+  //       this.statusMessage = profile.statusMessage;
+  //       this.email = liff.getDecodedIDToken()?.email;
+  //     })
+  //     .catch((err: any) => console.error(err));
+  // }
 
   // async mounted() {
   //   await this.initLIFF();
@@ -79,19 +81,25 @@ export default class lineLiff extends Vue {
   // }
 
   async logIn() {
-    await liff.login({ redirectUri: window.location.href });
-    await liff.init({ liffId: "2003517508-8gKpw6JQ" });
-    if (liff.isLoggedIn()) {
-      await this.getUserProfile();
-      this.isLoggedIn = true;
+    try {
+      await liff.init({ liffId: "2003517508-8gKpw6JQ" });
+      await liff.login({ redirectUri: window.location.href });
+      // await this.getUserProfile();
+    } catch (error) {
+      console.error("Error login line: ", error);
     }
   }
 
   async getUserProfile() {
-    const user = await liff.getProfile();
-    console.log("profile ja:", user);
-    this.runApp();
-    await this.storeUserDataInFirestore(user, "line");
+    if (liff.isLoggedIn()) {
+      const user = await liff.getProfile();
+      console.log("profile ja:", user);
+      // this.runApp();
+      await this.storeUserDataInFirestore(user, "line");
+      this.isLoggedIn = true;
+    } else {
+      console.log("ยังไม่ได้เข้าสู่ระบบด้วย LINE");
+    }
   }
 
   // async main() {
@@ -134,68 +142,3 @@ export default class lineLiff extends Vue {
   }
 }
 </script>
-
-<!-- async getUserProfile() {
-    try {
-      liff
-        .getProfile()
-        .then((profile: any) => {
-          this.pictureUrl = profile.pictureUrl;
-          this.userId = profile.userId;
-          this.displayName = profile.displayName;
-          this.statusMessage = profile.statusMessage;
-          this.email = liff.getDecodedIDToken()?.email;
-        })
-        .catch((err: any) => console.error(err));
-      await this.storeLineUserDataInFirestore("Line");
-    } catch (error) {
-      console.error("Error fetching profile:", error);
-    }
-
-    // const user = await liff.getProfile();
-    // console.log("profile ja:", user);
-    // this.isLoggedIn = true;
-    // console.log("profile jaaa:", this.isLoggedIn);
-    // this.runApp();
-  }
-
-  async main() {
-    if (liff.isInClient()) {
-      await this.getUserProfile();
-    } else {
-      if (liff.isLoggedIn()) {
-        await this.getUserProfile();
-        console.log("ซ: ", this.userId);
-        this.isLoggedIn = true;
-      } else {
-        this.isLoggedIn = false;
-      }
-    }
-  }
-
-  async storeLineUserDataInFirestore(provider: string) {
-    const db = getFirestore();
-    console.log("Document already exist ซ", this.userId);
-    const userRef = doc(db, "users", this.userId);
-    try {
-      const docSnapshot = await getDoc(userRef);
-      if (!docSnapshot.exists()) {
-        const userData = {
-          uid: this.userId,
-          displayName: this.displayName || null,
-          email: this.email || null,
-          phone: this.phone || null,
-          address: this.address || null,
-          role: "user",
-          provider: provider,
-        };
-
-        await setDoc(userRef, userData);
-        console.log("Document added with ID: ", userData.uid);
-      } else {
-        console.log("Document already exist ");
-      }
-    } catch (error) {
-      console.error("Error adding document: ", error);
-    }
-  } -->

@@ -16,7 +16,7 @@
           <div class="product1">
             <h3>{{ product.productName }}</h3>
             <!-- <p>{{ product.description }}</p> -->
-            <p>{{ product.price }}</p>
+            <p>{{ product.price }} Bath</p>
             <div class="tags-container">
               <span v-for="(tag, tagIndex) in product.tags" :key="tagIndex">{{
                 tag

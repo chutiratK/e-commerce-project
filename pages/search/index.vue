@@ -3,7 +3,7 @@
     <NavBar />
     <Nuxt />
     <div>
-      <h1>Searching Result:</h1>
+      <h1>Searching Result {{ this.searchResults.length }}:</h1>
       <div class="product-container">
         <div v-for="(product, index) in searchResults" :key="index">
           <div class="product-card">
@@ -18,7 +18,7 @@
             <div class="product1">
               <h3>{{ product.productName }}</h3>
               <p>{{ product.description }}</p>
-              <p>{{ product.price }}</p>
+              <p>{{ product.price }} Bath</p>
               <div class="tags-container">
                 <span v-for="(tag, tagIndex) in product.tags" :key="tagIndex">{{
                   tag
@@ -62,9 +62,11 @@ export default {
   data: () => ({
     searchQuery: "",
     searchResults: [],
+    results: [],
   }),
-  created() {
+  async created() {
     this.searchQuery = this.$route.query.q || "";
+    await this.searchTag();
     console.log("this.searchQuery ", this.searchQuery);
   },
   methods: {
@@ -77,47 +79,36 @@ export default {
 
       const querySnapshot = await getDocs(categoryRef);
       console.log(
-        "query: ",
-        querySnapshot.docs.map((doc) => doc.data())
+        "category: ",
+        querySnapshot.docs.map((doc) => doc.id)
       );
-      const documents = querySnapshot.docs.map((doc) => doc.data());
-
-      const results = [];
-      documents.forEach((document) => {
-        const tags = document.tags || [];
-        if (tags.includes(searchQueryLowerCase)) {
-          results.push(document.productID);
-          console.log("Match found! ProductID:", document.productID);
-        }
+      const documents = querySnapshot.docs.map((doc) => doc.id);
+      documents.forEach(async (document) => {
+        const categoryRef = collection(db, "category", document, "products");
+        const querySnapshot = await getDocs(categoryRef);
+        const products = querySnapshot.docs.map((doc) => doc.data());
+        // this.results = [];
+        products.forEach((prod) => {
+          const tags = prod.tags || [];
+          if (tags.includes(searchQueryLowerCase)) {
+            const productData = prod as CatalogItem;
+            // this.results.push(productData.productID);
+            this.searchResults.push(productData);
+            console.log("Match found! ProductID:", prod.productID);
+          }
+        });
+        console.log("results", this.searchResults.length);
+        // await this.fetchProductDetails(this.results);
       });
-      console.log("results", results);
-      await this.fetchProductDetails(results);
     },
-    async fetchProductDetails(productIDs: string[]) {
-      const db = getFirestore();
-      const categoryRef = collection(db, "category");
 
-      const products = [];
-
-      for (const productID of productIDs) {
-        const productDoc = doc(categoryRef, productID);
-        const productSnapshot = await getDoc(productDoc);
-
-        if (productSnapshot.exists()) {
-          const productData = productSnapshot.data() as CatalogItem;
-          products.push(productData);
-        }
-      }
-
-      this.searchResults = products;
-    },
     productDetail(productID: string) {
       this.$router.push("/category/productDetail/" + productID);
     },
   },
-  async mounted() {
-    await this.searchTag();
-  },
+  // async mounted() {
+  //   await this.searchTag();
+  // },
 };
 </script>
 

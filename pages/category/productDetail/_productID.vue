@@ -167,10 +167,10 @@ export default {
           this.addCartSuccess = true;
           console.log("Add to cart success!");
         } catch (error) {
-          console.error("Error adding product to cart:", error.message);
+          console.error("Error adding product to cart:", error);
         }
       } else {
-        this.$refs.loginModal.showModal();
+        console.log("Please Login");
       }
     },
     async addToWishList() {
@@ -205,10 +205,10 @@ export default {
           this.addWishSuccess = true;
           console.log("Add to wish list success!");
         } catch (error) {
-          console.error("Error adding product to wish list:", error.message);
+          console.error("Error adding product to wish list:", error);
         }
       } else {
-        this.$refs.loginModal.showModal();
+        console.log("Please Login");
       }
     },
     backToHome() {

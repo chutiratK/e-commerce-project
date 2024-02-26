@@ -1,5 +1,6 @@
 import express, { Request, Response } from "express";
 import cors from "cors";
+import bodyParser from "body-parser";
 import Stripe from "stripe";
 const stripe = new Stripe(
   "sk_test_51OPNLwFJUwe1va09f52NR33CExT8eu4n6l7AFS4iWWC8GtgpJNYD7ehhnIW5wPSKMRCRezzgDJsceeZK2mldW6CE00eiP3nHrq",
@@ -36,11 +37,6 @@ app.post("/create-payment-intent", async (req: Request, res: Response) => {
   } catch (error) {
     res.status(500).json({ error: error });
   }
-});
-const PORT = 3000;
-
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
 });
 
 // const express = require("express");
@@ -116,7 +112,7 @@ app.listen(PORT, () => {
 //     res.status(200).json({ received: true });
 //   }
 // );
-// const PORT = 3001;
+// const PORT = 3000;
 
 // app.listen(PORT, () => {
 //   console.log(`Server running on port ${PORT}`);

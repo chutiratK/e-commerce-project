@@ -16,7 +16,7 @@
           </center>
           <div class="product1">
             <h3>{{ product.productName }}</h3>
-            <p>{{ product.price }}</p>
+            <p>{{ product.price }} Bath</p>
             <div class="tags-container">
               <span v-for="(tag, tagIndex) in product.tags" :key="tagIndex">{{
                 tag
@@ -98,7 +98,7 @@ export default {
           this.catalogData = allCatalogData;
         }
       } catch (error) {
-        console.error("Error fetching user data:", error.message);
+        console.error("Error fetching user data:", error);
       }
 
       try {

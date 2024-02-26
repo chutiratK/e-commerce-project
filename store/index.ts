@@ -60,6 +60,11 @@ export const mutations = {
       };
     }
   },
+  SET_USER: (state: { user: any }, payload: { uid: string }) => {
+    state.user = {
+      uid: payload.uid,
+    };
+  },
 };
 
 export const actions = {
@@ -74,5 +79,11 @@ export const actions = {
         console.error("Error initializing LIFF: ", error);
       }
     }
+  },
+  async onAuthStateChangedAction(
+    { commit }: { commit: Commit },
+    { authUser, claims }: any
+  ) {
+    commit("ON_AUTH_STATE_CHANGED_MUTATION", { authUser, claims });
   },
 };

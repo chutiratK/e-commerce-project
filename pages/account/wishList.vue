@@ -192,7 +192,7 @@ export default Vue.extend({
           console.log("Wishlist data:", updatedAddr);
         });
       } catch (error) {
-        console.error("Error fetching wishList user data:", error.message);
+        console.error("Error fetching wishList user data:", error);
       }
 
       try {
@@ -201,7 +201,7 @@ export default Vue.extend({
           console.log("cart: ", this.wishCount);
         });
       } catch (error) {
-        console.error("Error fetching wishList user data:", error.message);
+        console.error("Error fetching wishList user data:", error);
       }
     },
     // async addToCart(productID: string) {

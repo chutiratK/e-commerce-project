@@ -23,7 +23,7 @@ Vue.prototype.$auth = auth;
 Vue.prototype.$firebase = app;
 Vue.prototype.$functions = functions;
 
-auth.onAuthStateChanged((user: any) => {
+auth.onAuthStateChanged(async (user) => {
   if (user) {
     console.log("ผู้ใช้เข้าสู่ระบบ:", user);
   } else {
@@ -34,7 +34,7 @@ auth.onAuthStateChanged((user: any) => {
 liff
   .init({ liffId: "2003517508-8gKpw6JQ" })
   .then(() => {
-    auth.onAuthStateChanged(async (user) => {
+    auth.onAuthStateChanged(async () => {
       if (liff.isLoggedIn()) {
         const user = await liff.getProfile();
         console.log("ผู้ใช้เข้าสู่ระบบด้วย line:", user);

@@ -109,6 +109,7 @@ import { getFirestore, updateDoc, onSnapshot, doc } from "firebase/firestore";
 export default Vue.extend({
   name: "PaymentMethod",
   components: { StripeElementCard, StripeCheckout },
+
   computed: {
     currentUser() {
       return this.$store.state.user;
@@ -145,10 +146,15 @@ export default Vue.extend({
       "pk_test_51OPNLwFJUwe1va09pikfEhMZZw3SrXulpaqGMXQbeT9kTm2MB6nbWKNWPNcTe3OJ1fJHw5a0d3H6TzA73NS3Ykjk003g6rTcC7",
     token: null,
     confirmParams: {
-      return_url: "http://localhost:3000",
+      return_url: "https://web-e-commerce-toa1.onrender.com",
     },
   }),
   methods: {
+    head() {
+      return {
+        script: [{ src: "https://js.stripe.com/v3/" }],
+      };
+    },
     selectPaymentMethod(paymentMethod: any) {
       this.selectedPaymentMethod = paymentMethod;
     },
@@ -164,8 +170,9 @@ export default Vue.extend({
       const db = getFirestore();
       console.log("token: ", token);
       try {
+        this.head();
         const result = await axios.post(
-          "http://localhost:3000/create-payment-intent",
+          "https://web-e-commerce-toa1.onrender.com/create-payment-intent",
           {
             amount: this.totalAmount,
             payment: {
