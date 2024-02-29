@@ -9,6 +9,7 @@
         v-for="(category, index) in categoryData"
         :key="index"
         class="category-card"
+        @click="categoryDetail(category.categoryId)"
       >
         <div class="more">
           <v-menu offset-y>
@@ -142,18 +143,11 @@ export default {
         console.error("Error fetching user data:", error);
       }
     },
-    categoryDetail() {},
-    async categoryCount() {
-      const db = getFirestore();
-      // const cartDocRef = collection(
-      //   db,
-      //   "category",
-      //   this.currentUser.uid,
-      //   "cartUser"
-      // );
-      // onSnapshot(cartDocRef, (snapshot) => {
-      //   this.cartItemCount = snapshot.size.toString();
-      // });
+    categoryDetail(categoryId: any) {
+      this.$router.push({
+        path: "/category/categoryDetail/",
+        query: { categoryId },
+      });
     },
     async Success() {
       const db = getFirestore();

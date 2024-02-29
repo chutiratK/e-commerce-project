@@ -24,11 +24,7 @@
           :aspect-ratio="1"
         />
       </v-btn>
-      <!-- <v-btn class="green login-button" v-if="!isLoggedIn" @click="logIn"
-        >LOGIN WITH LINE</v-btn
-      ><br /><br /> -->
     </center>
-    <!-- <button v-if="isLoggedIn" @click="logOut">Log Out</button> -->
   </div>
 </template>
 
@@ -75,16 +71,17 @@ export default class lineLiff extends Vue {
   //   await liff.init({ liffId: "2003517508-8gKpw6JQ" });
   // }
 
-  // async logOut() {
-  //   await liff.logout();
-  //   window.location.reload();
-  // }
-
   async logIn() {
     try {
       await liff.init({ liffId: "2003517508-8gKpw6JQ" });
-      await liff.login({ redirectUri: window.location.href });
-      // await this.getUserProfile();
+
+      if (!liff.isLoggedIn()) {
+        liff.login({ redirectUri: window.location.href });
+        return;
+      }
+
+      const user = await this.getUserProfile();
+      console.log("ผู้ใช้เข้าสู่ระบบด้วย line จ้า:", user);
     } catch (error) {
       console.error("Error login line: ", error);
     }
@@ -93,7 +90,7 @@ export default class lineLiff extends Vue {
   async getUserProfile() {
     if (liff.isLoggedIn()) {
       const user = await liff.getProfile();
-      console.log("profile ja:", user);
+      // console.log("profile ja:", user);
       // this.runApp();
       await this.storeUserDataInFirestore(user, "line");
       this.isLoggedIn = true;

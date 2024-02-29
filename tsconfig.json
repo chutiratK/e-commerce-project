@@ -24,5 +24,11 @@
   },
   "exclude": ["node_modules", ".nuxt", "dist"],
   "types": ["vue"],
-  "include": ["**/*.ts", "**/*.d.ts", "server.ts", "plugins/firebase.ts"]
+  "include": [
+    "**/*.ts",
+    "**/*.d.ts",
+    "server/server.ts",
+    "plugins/firebase.ts",
+    "plugins/liff.ts"
+  ]
 }

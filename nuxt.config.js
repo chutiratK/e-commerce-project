@@ -24,7 +24,10 @@ export default {
   css: [],
 
   // Plugins to run before rendering page: https://go.nuxtjs.dev/config-plugins
-  plugins: [{ src: "~/plugins/firebase.ts", mode: "client" }],
+  plugins: [
+    { src: "~/plugins/firebase.ts", mode: "client" },
+    { src: "~/plugins/liff.ts", mode: "client" },
+  ],
 
   // Auto import components: https://go.nuxtjs.dev/config-components
   components: true,
@@ -113,4 +116,5 @@ export default {
     port: 3000,
     host: "0.0.0.0",
   },
+  serverMiddleware: ["~/server/index.ts"],
 };

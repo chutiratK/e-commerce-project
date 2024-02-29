@@ -39,6 +39,10 @@ app.post("/create-payment-intent", async (req: Request, res: Response) => {
   }
 });
 
+app.get("/", async (req: Request, res: Response) => {
+  res.status(200).send("Server is running...");
+});
+
 // const express = require("express");
 // const cors = require("cors");
 // const bodyParser = require("body-parser");
@@ -112,8 +116,4 @@ app.post("/create-payment-intent", async (req: Request, res: Response) => {
 //     res.status(200).json({ received: true });
 //   }
 // );
-// const PORT = 3000;
-
-// app.listen(PORT, () => {
-//   console.log(`Server running on port ${PORT}`);
-// });
+export default { path: "/api/v1", handler: app };

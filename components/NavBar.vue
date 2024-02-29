@@ -365,17 +365,14 @@ export default Vue.extend({
         console.log("ล้อกอินไลน์");
         try {
           await liff.init({ liffId: "2003517508-8gKpw6JQ" });
-          if (liff.isLoggedIn()) {
-            const user = await liff.getProfile();
-            console.log("profile ja:", user);
-            await this.storeUserDataInFirestore(user, "line");
-          } else {
-            console.log("ยังไม่ได้เข้าสู่ระบบด้วย LINE");
-          }
+          const user = await liff.getProfile();
+          console.log("profile jaaa:", user);
+          await this.storeUserDataInFirestore(user, "line");
         } catch (error) {
           console.error("เข้าสู่ระบบด้วย LINE ไม่ได้: ", error);
         }
       } else {
+        console.log("ยังไม่ได้เข้าสู่ระบบด้วย LINE");
         this.isLineUser = false;
       }
     },
@@ -442,8 +439,8 @@ export default Vue.extend({
     },
   },
   mounted() {
-    this.updateCartItemCount();
     this.checkLineLogin();
+    this.updateCartItemCount();
     this.$store.dispatch("fetchUser");
   },
 });

@@ -172,7 +172,7 @@ export default Vue.extend({
       try {
         this.head();
         const result = await axios.post(
-          "https://web-e-commerce-toa1.onrender.com/create-payment-intent",
+          "https://web-e-commerce-toa1.onrender.com/api/v1/create-payment-intent",
           {
             amount: this.totalAmount,
             payment: {
