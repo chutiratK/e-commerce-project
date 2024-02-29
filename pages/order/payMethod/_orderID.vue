@@ -175,9 +175,7 @@ export default Vue.extend({
           "https://web-e-commerce-toa1.onrender.com/api/v1/create-payment-intent",
           {
             amount: this.totalAmount,
-            payment: {
-              id: token.id,
-            },
+            token: token.id,
           }
         );
         const orderRef = doc(
