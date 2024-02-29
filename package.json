@@ -38,6 +38,6 @@
     "@nuxtjs/vuetify": "^1.12.3",
     "@types/axios": "^0.14.0",
     "@types/firebase": "^3.2.1",
-    "@types/node": "^20.10.3"
+    "@types/node": "^20.11.22"
   }
 }
