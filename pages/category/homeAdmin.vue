@@ -6,7 +6,6 @@
         <div class="createBtn" @click="createProduct">+ New Product</div>
         <div class="createBtn" @click="createCategory">+ New Category</div>
       </div>
-      <!-- <SideBs -->
       <v-card class="productTable">
         <v-row class="header-row">
           <v-col> </v-col>

@@ -198,7 +198,6 @@ export default Vue.extend({
   },
 
   async mounted() {
-    // console.log("qqq", process.env.STRIPE_PUBLISHABLE_KEY);
     try {
       const orderID = this.$route.params.orderID;
       this.orderId = orderID;

@@ -49,15 +49,15 @@ export default {
       "@nuxtjs/firebase",
       {
         config: {
-          apiKey: "AIzaSyCOtyI-Kx9uJ4YcBvt3z4AZKUGJOS-8jDE",
-          authDomain: "nuxt-firebase-ba650.firebaseapp.com",
+          apiKey: "AIzaSyDSJ-UKS-cZcT5SkTCh9na2admp-UwtHN4",
+          authDomain: "nuxt-firebase-auth-6c26b.firebaseapp.com",
           databaseURL:
-            "https://nuxt-firebase-ba650-default-rtdb.firebaseio.com",
-          projectId: "nuxt-firebase-ba650",
-          storageBucket: "nuxt-firebase-ba650.appspot.com",
-          messagingSenderId: "452433095820",
-          appId: "1:452433095820:web:045e6203adb1ddfa165fa9",
-          measurementId: "G-6GN81D3H8J",
+            "https://nuxt-firebase-auth-6c26b-default-rtdb.asia-southeast1.firebasedatabase.app/",
+          projectId: "nuxt-firebase-auth-6c26b",
+          storageBucket: "nuxt-firebase-auth-6c26b.appspot.com",
+          messagingSenderId: "783600074081",
+          appId: "1:783600074081:web:07976fb0b0f67c910c1920",
+          measurementId: "G-G69JL6WLC5",
         },
         services: {
           auth: {
@@ -73,8 +73,25 @@ export default {
       },
       "@nuxtjs/axios",
       "@nuxtjs/dotenv",
+      '@nuxtjs/auth',
     ],
   ],
+
+  auth: {
+    strategies: {
+      line: {
+        _scheme: 'oauth2',
+        authorization_endpoint: 'https://access.line.me/oauth2/v2.1/authorize',
+        userinfo_endpoint: 'https://api.line.me/v2/profile',
+        scope: ['profile', 'openid', 'email'],
+        response_type: 'code',
+        token_key: 'access_token',
+        client_id: '2003517508',
+        client_secret: '943a7d4f3afb547049878bea17e721e9',
+        redirect_uri: 'https://bca9-2001-fb1-55-75c-1495-dc3a-1e68-9faf.ngrok-free.app',
+      },
+    },
+  },
 
   axios: {
     baseURL: "/",

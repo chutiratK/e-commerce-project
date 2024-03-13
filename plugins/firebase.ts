@@ -4,14 +4,15 @@ import { Functions, getFunctions } from "firebase/functions";
 import Vue from "vue";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyCOtyI-Kx9uJ4YcBvt3z4AZKUGJOS-8jDE",
-  authDomain: "nuxt-firebase-ba650.firebaseapp.com",
-  databaseURL: "https://nuxt-firebase-ba650-default-rtdb.firebaseio.com",
-  projectId: "nuxt-firebase-ba650",
-  storageBucket: "nuxt-firebase-ba650.appspot.com",
-  messagingSenderId: "452433095820",
-  appId: "1:452433095820:web:045e6203adb1ddfa165fa9",
-  measurementId: "G-6GN81D3H8J",
+  apiKey: "AIzaSyDSJ-UKS-cZcT5SkTCh9na2admp-UwtHN4",
+  authDomain: "nuxt-firebase-auth-6c26b.firebaseapp.com",
+  databaseURL:
+    "https://nuxt-firebase-auth-6c26b-default-rtdb.asia-southeast1.firebasedatabase.app/",
+  projectId: "nuxt-firebase-auth-6c26b",
+  storageBucket: "nuxt-firebase-auth-6c26b.appspot.com",
+  messagingSenderId: "783600074081",
+  appId: "1:783600074081:web:07976fb0b0f67c910c1920",
+  measurementId: "G-G69JL6WLC5",
 };
 
 const app: FirebaseApp = initializeApp(firebaseConfig);

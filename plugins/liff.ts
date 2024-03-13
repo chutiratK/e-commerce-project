@@ -6,8 +6,8 @@ liff
   .then(() => {
     auth.onAuthStateChanged(async () => {
       if (liff.isLoggedIn()) {
-        const user = await liff.getProfile();
-        console.log("ผู้ใช้เข้าสู่ระบบด้วย line:", user);
+        await liff.getProfile();
+        console.log("ผู้ใช้เข้าสู่ระบบด้วย line:");
       } else {
         console.log("ผู้ใช้ออกจากระบบ line");
       }

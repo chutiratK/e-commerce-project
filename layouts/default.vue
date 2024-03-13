@@ -12,16 +12,9 @@
   </v-app>
 </template>
 
-<script>
-// import ShopCart from "../components/ShoppingCart.vue";
-export default {
-  name: "DefaultLayout",
-  components: {},
-  data: () => ({}),
-  computed: {
-    isCartOpen() {
-      return this.$store.state.isCartOpen;
-    },
-  },
-};
+<script lang="ts">
+import { Vue, Component, Watch } from "nuxt-property-decorator";
+
+@Component
+export default class lineLiff extends Vue {}
 </script>

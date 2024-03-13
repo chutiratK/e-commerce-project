@@ -27,7 +27,7 @@
           <v-sheet class="pa-2 ma-2 navbar-3">
             <router-link class="link" to="/">Home</router-link>
             <router-link class="link" to="/about">About</router-link>
-            <template v-if="currentUser || isLineUser">
+            <template v-if="currentUser">
               <v-menu offset-y>
                 <template v-slot:activator="{ on, attrs }">
                   <v-btn color="transparent" dark v-bind="attrs" v-on="on">
@@ -168,7 +168,7 @@
       <div class="navbar-3">
         <router-link class="link" to="/">Home</router-link>
         <router-link class="link" to="/about">About</router-link>
-        <template v-if="currentUser || isLineUser">
+        <template v-if="currentUser">
           <v-menu offset-y>
             <template v-slot:activator="{ on, attrs }">
               <v-btn color="transparent" dark v-bind="attrs" v-on="on">
@@ -294,14 +294,7 @@
 import "bootstrap-icons/font/bootstrap-icons.css";
 import "firebase/auth";
 import { getAuth, signOut } from "firebase/auth";
-import {
-  getFirestore,
-  collection,
-  onSnapshot,
-  getDoc,
-  doc,
-  setDoc,
-} from "firebase/firestore";
+import { getFirestore, collection, onSnapshot } from "firebase/firestore";
 import Vue from "vue";
 import Modal from "../components/modals/login-modal.vue";
 import Search from "../components/searchTag.vue";
@@ -323,11 +316,10 @@ export default Vue.extend({
   data: () => ({
     showCart: false,
     cartItemCount: "0",
-    isLineUser: false,
   }),
   methods: {
     async signOut() {
-      if (this.isLineUser) {
+      if (liff.isLoggedIn()) {
         await liff.logout();
         this.$router.push("/");
         setTimeout(() => {
@@ -358,49 +350,6 @@ export default Vue.extend({
       onSnapshot(cartDocRef, (snapshot) => {
         this.cartItemCount = snapshot.size.toString();
       });
-    },
-    async checkLineLogin() {
-      if (liff.isLoggedIn()) {
-        this.isLineUser = true;
-        console.log("ล้อกอินไลน์");
-        try {
-          await liff.init({ liffId: "2003517508-8gKpw6JQ" });
-          const user = await liff.getProfile();
-          console.log("profile jaaa:", user);
-          await this.storeUserDataInFirestore(user, "line");
-        } catch (error) {
-          console.error("เข้าสู่ระบบด้วย LINE ไม่ได้: ", error);
-        }
-      } else {
-        console.log("ยังไม่ได้เข้าสู่ระบบด้วย LINE");
-        this.isLineUser = false;
-      }
-    },
-
-    async storeUserDataInFirestore(user: any, provider: string) {
-      const db = getFirestore();
-      const userRef = doc(db, "users", user.userId);
-      try {
-        const docSnapshot = await getDoc(userRef);
-        if (!docSnapshot.exists()) {
-          const userData = {
-            uid: user.userId,
-            displayName: user.displayName || null,
-            email: liff.getDecodedIDToken()?.email || null,
-            phone: user.phone || null,
-            address: user.address || null,
-            role: "user",
-            provider: provider,
-          };
-
-          await setDoc(userRef, userData);
-          console.log("Document added with ID: ", user.userId);
-        } else {
-          console.log("Document already exist ");
-        }
-      } catch (error) {
-        console.error("Error adding document: ", error);
-      }
     },
 
     goToProfile() {
@@ -439,9 +388,12 @@ export default Vue.extend({
     },
   },
   mounted() {
-    this.checkLineLogin();
-    this.updateCartItemCount();
     this.$store.dispatch("fetchUser");
+    this.updateCartItemCount();
+  },
+  async created() {
+    await this.$store.dispatch("fetchUser");
+    this.updateCartItemCount();
   },
 });
 </script>
