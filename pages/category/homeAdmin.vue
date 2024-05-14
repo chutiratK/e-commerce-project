@@ -5,6 +5,7 @@
       <div class="createBtnContainer">
         <div class="createBtn" @click="createProduct">+ New Product</div>
         <div class="createBtn" @click="createCategory">+ New Category</div>
+        <div class="createBtn" @click="createCoupon">+ New Coupon</div>
       </div>
       <v-card class="productTable">
         <v-row class="header-row">
@@ -17,6 +18,9 @@
           </v-col>
           <v-col>
             <strong>Price(Bath)</strong>
+          </v-col>
+          <v-col>
+            <strong>Stock</strong>
           </v-col>
           <v-col> </v-col>
         </v-row>
@@ -38,6 +42,7 @@
           </v-col>
           <v-col>{{ product.category }}</v-col>
           <v-col>{{ product.price }} Bath</v-col>
+          <v-col>{{ product.stock ? 'available' : 'out of stock' }}</v-col>
           <v-col class="button-column">
             <v-btn
               class="editBtn"
@@ -120,6 +125,7 @@ interface CatalogItem {
   price: number;
   imageUrl: string;
   tags: Array<string>;
+  stock: boolean;
 }
 export default {
   data: () => ({
@@ -188,6 +194,9 @@ export default {
     },
     createCategory() {
       this.$router.push("/category/addCategory");
+    },
+    createCoupon() {
+      this.$router.push("/coupon/addCoupon");
     },
     editProduct(productID: string, category: string) {
       this.$router.push({

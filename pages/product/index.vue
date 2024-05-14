@@ -3,8 +3,8 @@
     <NavBar />
     <Nuxt />
     <div class="product-container">
-      <div v-for="(product, index) in catalogData" :key="index">
-        <div class="product-card">
+      <div v-for="(product, index) in catalogData" :key="index" >
+        <div class="product-card" v-if="product.stock">
           <center>
             <img
               :src="product.imageUrl"
@@ -50,6 +50,7 @@ interface CatalogItem {
   price: number;
   imageUrl: string;
   tags: Array<string>;
+  stock: boolean;
 }
 export default {
   data: () => ({

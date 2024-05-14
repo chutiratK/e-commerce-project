@@ -1,6 +1,5 @@
 import express, { Request, Response } from "express";
 import cors from "cors";
-import bodyParser from "body-parser";
 import Stripe from "stripe";
 const stripe = new Stripe(
   "sk_test_51OPNLwFJUwe1va09f52NR33CExT8eu4n6l7AFS4iWWC8GtgpJNYD7ehhnIW5wPSKMRCRezzgDJsceeZK2mldW6CE00eiP3nHrq",
@@ -47,36 +46,86 @@ app.post("/create-payment-intent", async (req: Request, res: Response) => {
   }
 });
 
+app.post("/coupon", async (req: Request, res: Response) => {
+  try {
+    const { coupon } = req.body;
+    const couponData = await stripe.coupons.retrieve(coupon);
+
+    res.status(200).send({
+      coupon: couponData
+    });
+  } catch (error) {
+    res.status(500).json({ error: error });
+  }
+});
+
+app.post("/create-coupon", async (req: Request, res: Response) => {
+  try {
+    const { duration, percentOff } = req.body;
+    const coupon = await stripe.coupons.create({
+      duration: 'repeating',
+      duration_in_months: duration,
+      percent_off: percentOff,
+    });
+
+    res.status(200).send({
+      coupon: coupon
+    });
+  } catch (error) {
+    res.status(500).json({ error: error });
+  }
+});
+
+// app.post("/update-coupon", async (req: Request, res: Response) => {
+//   try {
+//     const { couponID, duration, percentOff } = req.body;
+//     const coupon = await stripe.coupons.update(couponID,
+//       {
+//         duration_in_months: duration,
+//         percent_off: percentOff,
+//       }
+//     );
+
+//     res.status(200).send({
+    
+//     });
+
+//   } catch(error) {
+//     res.status(500).json({ error: error });
+//   }
+// });
+
+app.get("/coupon-list", async (req: Request, res: Response) => {
+  try {
+    const coupons = await stripe.coupons.list({
+      limit: 3,
+    });
+
+    res.status(200).send({
+      couponList: coupons.data
+    });
+
+  } catch(error) {
+    res.status(500).json({ error: error });
+  }
+});
+
+
+app.post("/delete-coupon", async (req: Request, res: Response) => {
+  try {
+    const { couponID } = req.body;
+    const deleted = await stripe.coupons.del(couponID);
+
+    res.status(200).send({
+      status: deleted.deleted
+    });
+
+  } catch(error) {
+    res.status(500).json({ error: error });
+  }
+});
+
 app.get("/", async (req: Request, res: Response) => {
   res.status(200).send("Server is running...");
 });
 export default { path: "/api/v1", handler: app };
-// const endpointSecret = "whsec_aqxxQQZkXJGb5ANrW48vPQJq2QEfJHA7";
-
-// app.use(bodyParser.raw({ type: "application/json" }));
-
-// app.post("/webhook", (req, res) => {
-//   const sig = req.headers["stripe-signature"];
-
-//   let event;
-
-//   try {
-//     // สร้าง event จาก payload ที่ส่งมาจาก Stripe
-//     event = stripe.webhooks.constructEvent(req.body, sig, endpointSecret);
-//   } catch (err) {
-//     console.error("Webhook Error:", err);
-//     return res.status(400).send(`Webhook Error: ${err}`);
-//   }
-
-//   // จัดการ event ต่างๆ ตามที่คุณต้องการ
-//   if (event.type === "payment_intent.succeeded") {
-//     const paymentIntent = event.data.object;
-//     console.log("PaymentIntent was successful!");
-//   } else if (event.type === "payment_intent.payment_failed") {
-//     const paymentIntent = event.data.object;
-//     console.error("PaymentIntent failed:", paymentIntent.last_payment_error);
-//   }
-
-//   // ส่งคำตอบกลับไปยัง Stripe เพื่อยืนยันการรับ event เรียบร้อยแล้ว
-//   res.status(200).json({ received: true });
-// });

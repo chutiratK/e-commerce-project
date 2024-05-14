@@ -18,6 +18,7 @@
               </div>
             </div>
           </div>
+          <coupon @couponApplied="updateCouponDiscount" />
           <h2 class="m-3 pt-3">Order</h2>
           <hr />
           <div class="card-body">
@@ -37,7 +38,10 @@
               </div>
               <div class="total">
                 <h3>Total:</h3>
-                <p>฿ {{ selectedTotalAmount }}</p>
+                <div class="price-container">
+                  <p>{{ this.discountAmount == 0 ? selectedTotalAmount : this.totalAmount.toFixed(2) }} บาท</p>
+                  <s>{{ this.discountAmount == 0 ? '' : `${selectedTotalAmount} บาท` }}</s>
+                </div>
               </div>
               <v-btn class="payment" @click="payMethod()">ชำระเงิน</v-btn>
             </div>
@@ -123,6 +127,7 @@
 
 <script lang="ts">
 import Vue from "vue";
+import coupon from "../components/coupon.vue";
 import {
   getFirestore,
   collection,
@@ -152,7 +157,7 @@ interface Address {
 }
 export default Vue.extend({
   name: "checkout",
-  components: {},
+  components: { coupon },
   data: () => ({
     loading: true,
     cart: [] as Cart[],
@@ -166,8 +171,9 @@ export default Vue.extend({
     name: "",
     phone: "",
     addr: "",
+    discountAmount: 0,
+    totalAmount: 0,
   }),
-
   computed: {
     currentUser() {
       return this.$store.state.user;
@@ -267,6 +273,12 @@ export default Vue.extend({
         console.error("Error updating selected address:", error);
       }
     },
+    updateCouponDiscount(discount: any) {
+      this.discountAmount = discount * this.selectedTotalAmount;
+      this.totalAmount = this.selectedTotalAmount - this.discountAmount;
+      console.log("total: ", this.selectedTotalAmount);
+      console.log("discount: ", this.discountAmount);
+    },
     async payMethod() {
       const db = getFirestore();
       const selectedAddress = this.addresses.find(
@@ -294,7 +306,7 @@ export default Vue.extend({
             quantity: product.quantity,
             price: product.price,
           })),
-          totalAmount: this.selectedTotalAmount,
+          totalAmount: this.totalAmount,
           paymentSuccess: false,
         };
         const userOrderDocRef = await addDoc(userOrderRef, {});
@@ -369,6 +381,9 @@ export default Vue.extend({
 </script>
 
 <style>
+.price-container {
+  display: flex;
+}
 .title-1 {
   font-weight: bold;
 }
@@ -385,6 +400,7 @@ hr {
 }
 .checkout-container {
   margin: auto;
+  overflow: auto;
 }
 .card-body {
   margin: 20px 40px;
@@ -419,7 +435,14 @@ hr {
   font-weight: bold;
   font-size: 125%;
   margin-right: 20px;
+  color: green;
 }
+.orderedProduct .total s {
+  font-weight: bold;
+  font-size: 15px;
+
+}
+
 .payment {
   margin-left: 530px;
 }

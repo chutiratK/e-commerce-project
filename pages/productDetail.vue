@@ -16,7 +16,6 @@
 </template>
 
 <script lang="ts">
-import useStore  from 'vuex';
 import NavBar from "../components/NavBar.vue"
 import SignIn from "../components/SignIn.vue"
 import { getFirestore, doc, getDoc } from 'firebase/firestore';

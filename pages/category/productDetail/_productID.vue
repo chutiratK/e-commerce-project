@@ -26,8 +26,8 @@
                 ><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
                   <path
                     d="M47.6 300.4L228.3 469.1c7.5 7 17.4 10.9 27.7 10.9s20.2-3.9 27.7-10.9L464.4 300.4c30.4-28.3 47.6-68 47.6-109.5v-5.8c0-69.9-50.5-129.5-119.4-141C347 36.5 300.6 51.4 268 84L256 96 244 84c-32.6-32.6-79-47.5-124.6-39.9C50.5 55.6 0 115.2 0 185.1v5.8c0 41.5 17.2 81.2 47.6 109.5z"
-                  /></svg
-                >Add to Wish List
+                  /></svg>
+                Add to Wish List
               </span>
             </v-btn>
             <v-btn @click="addToCart">Add to Cart</v-btn>
@@ -64,19 +64,21 @@
         </center>
       </v-card>
     </v-dialog>
-    <!-- <Modal ref="loginModal" /> -->
+    <v-dialog max-width="600px" v-model="isLogin">
+      <LoginModal />
+    </v-dialog>
   </v-app>
 </template>
 
 <script lang="ts">
 import NavBar from "../../../components/NavBar.vue";
 import SignIn from "../../../components/SignIn.vue";
-import Modal from "../../../components/modals/login-modal.vue";
+import LoginModal from "../../../components/LoginSection.vue";
 import { getFirestore, doc, getDoc, setDoc } from "firebase/firestore";
 
 export default {
   name: "productDetail",
-  components: { NavBar, SignIn, Modal },
+  components: { NavBar, SignIn, LoginModal },
   data: () => ({
     loading: true,
     productName: "",
@@ -88,6 +90,7 @@ export default {
     productID: "",
     addCartSuccess: false,
     addWishSuccess: false,
+    isLogin: false,
   }),
   mounted() {
     this.fetchExistingData();
@@ -127,88 +130,97 @@ export default {
           console.error("Product not found.");
         }
       } catch (error) {
-        console.error("Error fetching product data:", error.message);
+        console.error("Error fetching product data:", error);
       } finally {
         this.loading = false;
       }
     },
     async addToCart() {
-      const db = getFirestore();
-      const cartData = {
-        productID: this.productID,
-        category: this.category,
-        productName: this.productName,
-        description: this.description,
-        imageUrl: this.imageUrl,
-        price: this.price,
-        quantity: this.quantity,
-        selected: true,
-      };
-      if (this.currentUser) {
-        try {
-          const userCartDocRef = doc(db, "cart", this.currentUser.uid);
-          const userCartDocSnapshot = await getDoc(userCartDocRef);
+      try {
+        const db = getFirestore();
+        const cartData = {
+          productID: this.productID,
+          category: this.category,
+          productName: this.productName,
+          description: this.description,
+          imageUrl: this.imageUrl,
+          price: this.price,
+          quantity: this.quantity,
+          selected: true,
+        };
+        if (this.currentUser) {
+          try {
+            const userCartDocRef = doc(db, "cart", this.currentUser.uid);
+            const userCartDocSnapshot = await getDoc(userCartDocRef);
 
-          if (userCartDocSnapshot.exists()) {
-            await setDoc(userCartDocRef, {
-              ...userCartDocSnapshot.data(),
-              ...cartData,
-            });
-          } else {
-            await setDoc(userCartDocRef, {});
+            if (userCartDocSnapshot.exists()) {
+              await setDoc(userCartDocRef, {
+                ...userCartDocSnapshot.data(),
+                ...cartData,
+              });
+            } else {
+              await setDoc(userCartDocRef, {});
+            }
+
+            const cartUserDocRef = doc(
+              userCartDocRef,
+              "cartUser",
+              this.productID
+            );
+            await setDoc(cartUserDocRef, cartData);
+            this.addCartSuccess = true;
+            console.log("Add to cart success!");
+          } catch (error) {
+            console.error("Error adding product to cart:", error);
           }
-
-          const cartUserDocRef = doc(
-            userCartDocRef,
-            "cartUser",
-            this.productID
-          );
-          await setDoc(cartUserDocRef, cartData);
-          this.addCartSuccess = true;
-          console.log("Add to cart success!");
-        } catch (error) {
-          console.error("Error adding product to cart:", error);
+        } else {
+          this.isLogin = true
         }
-      } else {
-        console.log("Please Login");
+      } catch (error) {
+
       }
+      
     },
     async addToWishList() {
-      const db = getFirestore();
-      const cartData = {
-        productID: this.productID,
-        category: this.category,
-        productName: this.productName,
-        imageUrl: this.imageUrl,
-        price: this.price,
-      };
-      if (this.currentUser) {
-        try {
-          const userCartDocRef = doc(db, "wishList", this.currentUser.uid);
-          const userCartDocSnapshot = await getDoc(userCartDocRef);
+      try {
+        const db = getFirestore();
+        const cartData = {
+          productID: this.productID,
+          category: this.category,
+          productName: this.productName,
+          imageUrl: this.imageUrl,
+          price: this.price,
+        };
+        if (this.currentUser) {
+          try {
+            const userCartDocRef = doc(db, "wishList", this.currentUser.uid);
+            const userCartDocSnapshot = await getDoc(userCartDocRef);
 
-          if (userCartDocSnapshot.exists()) {
-            await setDoc(userCartDocRef, {
-              ...userCartDocSnapshot.data(),
-              ...cartData,
-            });
-          } else {
-            await setDoc(userCartDocRef, {});
+            if (userCartDocSnapshot.exists()) {
+              await setDoc(userCartDocRef, {
+                ...userCartDocSnapshot.data(),
+                ...cartData,
+              });
+            } else {
+              await setDoc(userCartDocRef, {});
+            }
+
+            const cartUserDocRef = doc(
+              userCartDocRef,
+              "wishListUser",
+              this.productID
+            );
+            await setDoc(cartUserDocRef, cartData);
+            this.addWishSuccess = true;
+            console.log("Add to wish list success!");
+          } catch (error) {
+            console.error("Error adding product to wish list:", error);
           }
-
-          const cartUserDocRef = doc(
-            userCartDocRef,
-            "wishListUser",
-            this.productID
-          );
-          await setDoc(cartUserDocRef, cartData);
-          this.addWishSuccess = true;
-          console.log("Add to wish list success!");
-        } catch (error) {
-          console.error("Error adding product to wish list:", error);
+        } else {
+          this.isLogin = true
         }
-      } else {
-        console.log("Please Login");
+      } catch (error) {
+        console.error("Error adding product to wishlist:", error);
       }
     },
     backToHome() {

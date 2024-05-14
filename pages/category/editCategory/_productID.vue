@@ -65,15 +65,33 @@
                   <span v-if="imageUrl" @click="removeImage">&times;</span>
                 </div>
               </div>
-              <div class="form-group">
-                <label>Price</label>
-                <input
-                  type="number"
-                  class="form-control"
-                  v-model="price"
-                  required
-                />
+
+              <div class="form-group group3">
+                <div class="price">
+                  <label>Price</label>
+                  <input
+                    type="number"
+                    class="form-control"
+                    v-model="price"
+                    required
+                  />
+                  <span v-if="errorMessagePrice" class="error-message"
+                    >please fill this field</span
+                  >
+                </div>
+                <div class="selectStocked">
+                  <div>Stock: {{ selectStocked }}</div>
+                  <select v-model="selectStocked">
+                    <option disabled value="">Please select one</option>
+                    <option value="available">Available</option>
+                    <option value="unavailable">Out of Stock</option>
+                  </select>
+                  <span v-if="errorMessagePrice" class="error-message"
+                    >please fill this field</span
+                  >
+                </div>
               </div>
+
               <label>Tags</label>
               <div class="tag-input">
                 <div v-for="(tag, index) in tags" :key="tag" class="tag">
@@ -149,6 +167,8 @@ export default {
     categoryChoice: "",
     editSuccess: false,
     uploadedImage: null,
+    selectStocked: "",
+    stock: false,
   }),
   created() {
     this.category = this.$route.query.category;
@@ -202,6 +222,15 @@ export default {
         "products",
         productID
       );
+      // try {
+      //   if (this.stock) {
+      //     this.selectStocked = 'available'
+      //   } else {
+      //     this.selectStocked = 'unavailable'
+      //   }
+      // } catch (error) {
+      //   console.error("Error fetching stock data:", error);
+      // }
 
       try {
         const productDocSnapshot = await getDoc(productDocRef);
@@ -214,15 +243,27 @@ export default {
           this.imageUrl = productData.imageUrl;
           this.price = productData.price;
           this.tags = productData.tags;
+          this.stock = productData.stock;
+
+          if (this.stock === true) {
+            this.selectStocked = 'available';
+          } else if (this.stock === false) {
+            this.selectStocked = 'unavailable';
+          }
         } else {
           console.error("Product not found.");
         }
       } catch (error) {
-        console.error("Error fetching product data:", error.message);
+        console.error("Error fetching product data:", error);
       }
     },
     async editCategory() {
       const db = getFirestore();
+      if (this.selectStocked === 'available') {
+        this.stock = true;
+      } else if (this.selectStocked === 'unavailable') {
+        this.stock = false;
+      } 
       const docRef = doc(
         db,
         "category",
@@ -230,6 +271,7 @@ export default {
         "products",
         this.productID
       );
+
       const productData = {
         productName: this.productName,
         category: this.category,
@@ -238,6 +280,7 @@ export default {
         price: this.price,
         productID: this.productID,
         tags: this.tags,
+        stock: this.stock,
       };
 
       try {
@@ -314,7 +357,7 @@ export default {
   border: 1px solid #ccc;
   padding: 8px;
   border-radius: 4px;
-  width: 300px;
+  width: auto;
 }
 .form-group textarea {
   border: 1px solid #ccc;
@@ -386,5 +429,16 @@ export default {
   padding: 8px;
   border-radius: 4px;
   width: 300px;
+}
+.selectStocked select {
+  border: 1px solid #ccc;
+  padding: 8px;
+  border-radius: 4px;
+  width: auto;
+}
+.group3 {
+  display: flex;
+  justify-content: flex-start;
+  gap: 10px;
 }
 </style>

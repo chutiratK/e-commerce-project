@@ -53,6 +53,7 @@ interface CatalogItem {
   price: number;
   imageUrl: string;
   tags: Array<string>;
+  stock: boolean;
 }
 export default {
   data: () => ({
@@ -92,8 +93,9 @@ export default {
 
           productsQuerySnapshot.forEach((productDoc) => {
             const data = productDoc.data() as CatalogItem;
-
-            allCatalogData.push(data);
+            if (data.stock) {
+              allCatalogData.push(data);
+            }
           });
           this.catalogData = allCatalogData;
         }
